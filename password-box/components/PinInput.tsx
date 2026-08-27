@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
+import { useI18n } from '../i18n';
 
 export interface PinInputProps {
   length?: number;
@@ -29,6 +30,7 @@ export default function PinInput({
   const [pin, setPin] = useState('');
   const pinRef = useRef('');
   const completeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { t } = useI18n();
 
   const clearPending = () => {
     if (completeTimer.current) {
@@ -128,7 +130,7 @@ export default function PinInput({
           </Pressable>
           <Pressable
             disabled={disabled || pin.length === 0}
-            accessibilityLabel="Effacer"
+            accessibilityLabel={t('common.clear')}
             onPress={pressBackspace}
             style={({ pressed }) => [
               styles.key,

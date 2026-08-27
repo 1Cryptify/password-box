@@ -2,6 +2,7 @@ import React from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
+import { useI18n } from '../i18n';
 
 interface SearchBarProps {
   value: string;
@@ -9,7 +10,8 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-export default function SearchBar({ value, onChangeText, placeholder = 'Rechercher...' }: SearchBarProps) {
+export default function SearchBar({ value, onChangeText, placeholder }: SearchBarProps) {
+  const { t } = useI18n();
   return (
     <View style={styles.container}>
       <MaterialIcons name="search" size={20} color={Colors.textMuted} />
@@ -17,7 +19,7 @@ export default function SearchBar({ value, onChangeText, placeholder = 'Recherch
         style={styles.input}
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('common.search')}
         placeholderTextColor={Colors.textMuted}
         autoCorrect={false}
       />

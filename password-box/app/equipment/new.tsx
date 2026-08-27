@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -23,10 +22,12 @@ import {
 } from '../../lib/types';
 import { saveEquipment } from '../../lib/database';
 import { generateId } from '../../lib/encryption';
+import { useI18n } from '../../i18n';
 
 export default function NewEquipmentScreen() {
   const router = useRouter();
   const { siteId } = useLocalSearchParams<{ siteId: string }>();
+  const { t, tt } = useI18n();
   const [name, setName] = useState('');
   const [type, setType] = useState<EquipmentType>('pc');
   const [customType, setCustomType] = useState('');
@@ -70,11 +71,11 @@ export default function NewEquipmentScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Erreur', 'Le nom est obligatoire.');
+      Alert.alert(t('equipment.error'), t('site.nameRequired'));
       return;
     }
     if (type === 'autre' && !customType.trim()) {
-      Alert.alert('Erreur', 'Veuillez préciser le type d\'équipement.');
+      Alert.alert(t('equipment.error'), t('site.customTypeRequired'));
       return;
     }
     if (!siteId) return;
@@ -98,12 +99,12 @@ export default function NewEquipmentScreen() {
       updatedAt: now,
     });
     Alert.alert(
-      'Équipement enregistré',
-      'Voulez-vous géolocaliser cet équipement maintenant ?',
+      t('equipment.savedTitle'),
+      t('equipment.savedMsg'),
       [
-        { text: 'Plus tard', style: 'cancel', onPress: () => router.back() },
+        { text: t('common.later'), style: 'cancel', onPress: () => router.back() },
         {
-          text: 'Géolocaliser',
+          text: t('equipment.geolocate'),
           onPress: () => router.replace(`/equipment/location?id=${newId}`),
         },
       ]
@@ -113,38 +114,43 @@ export default function NewEquipmentScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior="padding"
+      keyboardVerticalOffset={0}
     >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialIcons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nouvel équipement</Text>
+        <Text style={styles.headerTitle}>{t('equipment.newTitle')}</Text>
         <TouchableOpacity onPress={handleSave} style={styles.saveBtn}>
-          <Text style={styles.saveBtnText}>Enregistrer</Text>
+          <Text style={styles.saveBtnText}>{t('common.save')}</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.label}>Nom de l'équipement *</Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.label}>{t('equipment.name')}</Text>
         <TextInput
           style={styles.input}
           value={name}
           onChangeText={setName}
-          placeholder="Ex: Routeur principal"
+          placeholder={t('equipment.namePlaceholder')}
           placeholderTextColor={Colors.textMuted}
         />
 
-        <Text style={styles.label}>Type d'équipement *</Text>
+        <Text style={styles.label}>{t('equipment.type')}</Text>
         <View style={styles.chipGrid}>
-          {equipmentTypes.map((t) => (
+          {equipmentTypes.map((eqType) => (
             <TouchableOpacity
-              key={t}
-              style={[styles.chip, type === t && styles.chipActive]}
-              onPress={() => handleTypeChange(t)}
+              key={eqType}
+              style={[styles.chip, type === eqType && styles.chipActive]}
+              onPress={() => handleTypeChange(eqType)}
             >
-              <Text style={[styles.chipText, type === t && styles.chipTextActive]}>
-                {EQUIPMENT_TYPE_LABELS[t]}
+              <Text style={[styles.chipText, type === eqType && styles.chipTextActive]}>
+                {t(EQUIPMENT_TYPE_LABELS[eqType])}
               </Text>
             </TouchableOpacity>
           ))}
@@ -152,12 +158,12 @@ export default function NewEquipmentScreen() {
 
         {type === 'autre' && (
           <View style={styles.customField}>
-            <Text style={styles.label}>Précisez le type *</Text>
+            <Text style={styles.label}>{t('equipment.customType')}</Text>
             <TextInput
               style={styles.input}
               value={customType}
               onChangeText={setCustomType}
-              placeholder="Ex: Contrôleur HVAC"
+              placeholder={t('equipment.customTypePlaceholder')}
               placeholderTextColor={Colors.textMuted}
             />
           </View>
@@ -165,7 +171,7 @@ export default function NewEquipmentScreen() {
 
         {type !== 'autre' && BRANDS_BY_TYPE[type] && BRANDS_BY_TYPE[type].length > 0 && (
           <View style={styles.customField}>
-            <Text style={styles.label}>Marque</Text>
+            <Text style={styles.label}>{t('equipment.brand')}</Text>
             <TextInput
               style={styles.input}
               value={brandQuery}
@@ -175,7 +181,7 @@ export default function NewEquipmentScreen() {
                 setShowBrandSuggestions(true);
               }}
               onFocus={() => setShowBrandSuggestions(true)}
-              placeholder="Rechercher une marque..."
+              placeholder={t('equipment.brandPlaceholder')}
               placeholderTextColor={Colors.textMuted}
             />
             {showBrandSuggestions && brandSuggestions.length > 0 && (
@@ -212,7 +218,7 @@ export default function NewEquipmentScreen() {
 
         {type !== 'autre' && (
           <View style={styles.customField}>
-            <Text style={styles.label}>Système d'exploitation</Text>
+            <Text style={styles.label}>{t('equipment.os')}</Text>
             <View style={styles.chipGrid}>
               {compatibleOS.map((o) => (
                 <TouchableOpacity
@@ -224,7 +230,7 @@ export default function NewEquipmentScreen() {
                   }}
                 >
                   <Text style={[styles.chipText, os === o && styles.chipTextActive]}>
-                    {OS_LABELS[o]}
+                    {t(OS_LABELS[o])}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -235,39 +241,39 @@ export default function NewEquipmentScreen() {
                 style={[styles.input, styles.customOsInput]}
                 value={customOS}
                 onChangeText={setCustomOS}
-                placeholder="Précisez le système d'exploitation"
+                placeholder={t('equipment.customOS')}
                 placeholderTextColor={Colors.textMuted}
               />
             )}
           </View>
         )}
 
-        <Text style={styles.label}>Nom d'hôte</Text>
+        <Text style={styles.label}>{t('equipment.hostname')}</Text>
         <TextInput
           style={styles.input}
           value={hostname}
           onChangeText={setHostname}
-          placeholder="Ex: SRV-PRD-01"
+          placeholder={t('equipment.hostnamePlaceholder')}
           placeholderTextColor={Colors.textMuted}
           autoCapitalize="characters"
         />
 
-        <Text style={styles.label}>Adresse IP</Text>
+        <Text style={styles.label}>{t('equipment.ip')}</Text>
         <TextInput
           style={styles.input}
           value={ipAddress}
           onChangeText={setIpAddress}
-          placeholder="Ex: 192.168.1.1"
+          placeholder={t('equipment.ipPlaceholder')}
           placeholderTextColor={Colors.textMuted}
           keyboardType="decimal-pad"
         />
 
-        <Text style={styles.label}>Notes</Text>
+        <Text style={styles.label}>{t('common.notes')}</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
           value={notes}
           onChangeText={setNotes}
-          placeholder="Informations supplémentaires..."
+          placeholder={t('site.extraInfo')}
           placeholderTextColor={Colors.textMuted}
           multiline
           numberOfLines={4}

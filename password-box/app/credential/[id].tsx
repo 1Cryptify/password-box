@@ -13,10 +13,12 @@ import * as Clipboard from 'expo-clipboard';
 import { Colors, Spacing, BorderRadius, FontSize } from '../../constants/theme';
 import { Credential, AUTH_TYPE_LABELS } from '../../lib/types';
 import { getCredential, deleteCredential } from '../../lib/database';
+import { useI18n } from '../../i18n';
 
 export default function CredentialDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { t, tt } = useI18n();
   const [credential, setCredential] = useState<Credential | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -34,17 +36,17 @@ export default function CredentialDetailScreen() {
 
   const copyToClipboard = async (text: string, label: string) => {
     await Clipboard.setStringAsync(text);
-    Alert.alert('Copie', label + ' copie dans le presse-papier.');
+    Alert.alert(t('credential.detail.copied'), t('credential.detail.copiedMsg', { label }));
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      "Supprimer l'identifiant",
-      "Supprimer cet identifiant ?",
+Alert.alert(
+      t('credential.detail.deleteTitle'),
+      t('credential.detail.deleteMsg'),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             if (id) await deleteCredential(id);
@@ -71,17 +73,17 @@ export default function CredentialDetailScreen() {
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.authBadge}>
-          <Text style={styles.authBadgeText}>{AUTH_TYPE_LABELS[credential.authType]}</Text>
+          <Text style={styles.authBadgeText}>{t(AUTH_TYPE_LABELS[credential.authType])}</Text>
         </View>
 
         {credential.username ? (
           <TouchableOpacity
             style={styles.fieldCard}
-            onPress={() => copyToClipboard(credential.username, 'Utilisateur')}
+onPress={() => copyToClipboard(credential.username, t('credential.detail.username'))}
           >
             <View style={styles.fieldHeader}>
               <MaterialIcons name="person" size={20} color={Colors.primary} />
-              <Text style={styles.fieldLabel}>Utilisateur</Text>
+              <Text style={styles.fieldLabel}>{t('credential.detail.username')}</Text>
               <MaterialIcons name="content-copy" size={16} color={Colors.textMuted} />
             </View>
             <Text style={styles.fieldValue}>{credential.username}</Text>
@@ -91,11 +93,11 @@ export default function CredentialDetailScreen() {
         {credential.password ? (
           <TouchableOpacity
             style={styles.fieldCard}
-            onPress={() => copyToClipboard(credential.password, 'Mot de passe')}
+onPress={() => copyToClipboard(credential.password, t('credential.detail.password'))}
           >
             <View style={styles.fieldHeader}>
               <MaterialIcons name="lock" size={20} color={Colors.primary} />
-              <Text style={styles.fieldLabel}>Mot de passe</Text>
+              <Text style={styles.fieldLabel}>{t('credential.detail.password')}</Text>
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <MaterialIcons
                   name={showPassword ? 'visibility-off' : 'visibility'}
@@ -115,7 +117,7 @@ export default function CredentialDetailScreen() {
           <View style={styles.fieldCard}>
             <View style={styles.fieldHeader}>
               <MaterialIcons name="settings-ethernet" size={20} color={Colors.secondary} />
-              <Text style={styles.fieldLabel}>Port</Text>
+              <Text style={styles.fieldLabel}>{t('credential.detail.port')}</Text>
             </View>
             <Text style={styles.fieldValueMono}>{credential.port}</Text>
           </View>
@@ -124,11 +126,11 @@ export default function CredentialDetailScreen() {
         {credential.extraInfo ? (
           <TouchableOpacity
             style={styles.fieldCard}
-            onPress={() => copyToClipboard(credential.extraInfo, 'Info')}
+onPress={() => copyToClipboard(credential.extraInfo, t('credential.detail.extraInfo'))}
           >
             <View style={styles.fieldHeader}>
               <MaterialIcons name="info" size={20} color={Colors.warning} />
-              <Text style={styles.fieldLabel}>Informations supplementaires</Text>
+              <Text style={styles.fieldLabel}>{t('credential.detail.extraInfo')}</Text>
               <MaterialIcons name="content-copy" size={16} color={Colors.textMuted} />
             </View>
             <Text style={styles.fieldValue}>{credential.extraInfo}</Text>
@@ -139,15 +141,15 @@ export default function CredentialDetailScreen() {
           <View style={styles.fieldCard}>
             <View style={styles.fieldHeader}>
               <MaterialIcons name="notes" size={20} color={Colors.textMuted} />
-              <Text style={styles.fieldLabel}>Notes</Text>
+              <Text style={styles.fieldLabel}>{t('credential.detail.notes')}</Text>
             </View>
             <Text style={styles.fieldValue}>{credential.notes}</Text>
           </View>
         ) : null}
 
         <View style={styles.metaCard}>
-          <Text style={styles.metaText}>Cree: {new Date(credential.createdAt).toLocaleDateString('fr-FR')}</Text>
-          <Text style={styles.metaText}>Modifie: {new Date(credential.updatedAt).toLocaleDateString('fr-FR')}</Text>
+<Text style={styles.metaText}>{t('credential.detail.created', { date: new Date(credential.createdAt).toLocaleDateString('fr-FR') })}</Text>
+          <Text style={styles.metaText}>{t('credential.detail.modified', { date: new Date(credential.updatedAt).toLocaleDateString('fr-FR') })}</Text>
         </View>
       </ScrollView>
     </View>

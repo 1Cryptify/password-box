@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,9 +13,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius, FontSize } from '../../constants/theme';
 import { Site, Equipment, EQUIPMENT_ICONS, EQUIPMENT_TYPE_LABELS } from '../../lib/types';
 import { getSite, getEquipmentBySite, getCredentialsByEquipment } from '../../lib/database';
-import LeafletMap, { MapMarker } from '../../components/LeafletMap';
+import LeafletMap, { MapMarker, LeafletMapHandle } from '../../components/LeafletMap';
 import { cacheAreaForZooms, isOnline } from '../../lib/tile-cache';
 import { EQUIPMENT_ICONS as ICON_MAP } from '../../lib/types';
+import * as Location from 'expo-location';
+import { getPosition } from '../../lib/location';
+import { useI18n } from '../../i18n';
 
 const EQUIPMENT_COLORS: Record<string, string> = {
   routeur: '#FF6B6B',
@@ -36,6 +39,7 @@ const EQUIPMENT_COLORS: Record<string, string> = {
 export default function SiteMapScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { t, tt } = useI18n();
   const [site, setSite] = useState<Site | null>(null);
   const [equipmentList, setEquipmentList] = useState<Equipment[]>([]);
   const [credCounts, setCredCounts] = useState<Record<string, number>>({});
@@ -44,6 +48,13 @@ export default function SiteMapScreen() {
   const [caching, setCaching] = useState(false);
   const [cacheProgress, setCacheProgress] = useState('');
   const [showList, setShowList] = useState(false);
+  const [userLoc, setUserLoc] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locLoading, setLocLoading] = useState(false);
+  const mapRef = useRef<LeafletMapHandle>(null);
+
+  const hasAnyPosition =
+    (site?.latitude && site?.longitude) ||
+    equipmentList.some((e) => e.latitude != null && e.longitude != null);
 
   useFocusEffect(
     useCallback(() => {
@@ -67,6 +78,40 @@ export default function SiteMapScreen() {
       counts[e.id] = creds.length;
     }
     setCredCounts(counts);
+  };
+
+  const locateUser = async (center = false) => {
+    setLocLoading(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(t('map.permissionDenied'), t('map.permissionMsg'));
+        return null;
+      }
+      const loc = await getPosition();
+      if (!loc) {
+        Alert.alert(t('common.error'), t('map.posError'));
+        return null;
+      }
+      const pos = { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
+      setUserLoc(pos);
+      if (center) {
+        mapRef.current?.setView(pos.latitude, pos.longitude, 17);
+      }
+      return pos;
+    } catch {
+      Alert.alert(t('common.error'), t('map.posError'));
+      return null;
+    } finally {
+      setLocLoading(false);
+    }
+  };
+
+  const handleMapReady = () => {
+    setMapReady(true);
+    if (!hasAnyPosition && !userLoc) {
+      locateUser(true);
+    }
   };
 
   const getCenter = () => {
@@ -102,21 +147,21 @@ export default function SiteMapScreen() {
   const handleCacheTiles = async () => {
     const online = await isOnline();
     if (!online) {
-      Alert.alert('Hors ligne', 'Connectez-vous à Internet pour télécharger les tuiles de carte.');
+      Alert.alert(t('map.offline'), t('map.offlineMsg'));
       return;
     }
 
     const center = getCenter();
     setCaching(true);
-    setCacheProgress('Téléchargement...');
+    setCacheProgress(t('map.downloading'));
 
     try {
       await cacheAreaForZooms(center.latitude, center.longitude, 14, 18, 4, (zoom, dl, total) => {
-        setCacheProgress(`Zoom ${zoom}: ${dl}/${total}`);
+        setCacheProgress(t('map.zoomProgress', { zoom, done: dl, total }));
       });
-      Alert.alert('Succès', 'La carte du site a été téléchargée pour une utilisation hors ligne.');
+      Alert.alert(t('map.cacheSuccess'), t('map.cacheSuccessMsg'));
     } catch {
-      Alert.alert('Erreur', 'Erreur lors du téléchargement.');
+      Alert.alert(t('map.cacheError'), t('map.cacheErrorMsg'));
     } finally {
       setCaching(false);
       setTimeout(() => setCacheProgress(''), 2000);
@@ -133,7 +178,7 @@ export default function SiteMapScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialIcons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>Carte — {site.name}</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>{t('map.title', { name: site.name })}</Text>
         <TouchableOpacity
           style={styles.listToggle}
           onPress={() => setShowList(!showList)}
@@ -155,11 +200,16 @@ export default function SiteMapScreen() {
 
       <View style={styles.mapArea}>
         <LeafletMap
-          center={getCenter()}
-          zoom={site.latitude ? 17 : 15}
+          ref={mapRef}
+          center={userLoc ?? getCenter()}
+          zoom={site.latitude || userLoc ? 17 : 15}
           markers={getMapMarkers()}
-          onMapReady={() => setMapReady(true)}
+          showMyLocation={!!userLoc}
+          locationLatitude={userLoc?.latitude ?? null}
+          locationLongitude={userLoc?.longitude ?? null}
+          onMapReady={handleMapReady}
           onMarkerPress={handleMarkerPress}
+          onLocatePress={() => locateUser(true)}
           style={styles.map}
         />
 
@@ -178,7 +228,7 @@ export default function SiteMapScreen() {
           <View style={styles.statDivider} />
           <View style={styles.stat}>
             <MaterialIcons name="place" size={14} color={Colors.secondary} />
-            <Text style={styles.statText}>{locatedCount} géolocalisés</Text>
+            <Text style={styles.statText}>{t('map.geolocated', { count: locatedCount })}</Text>
           </View>
         </View>
       </View>
@@ -196,7 +246,7 @@ export default function SiteMapScreen() {
             <View style={styles.selectedInfo}>
               <Text style={styles.selectedName} numberOfLines={1}>{selectedEquipment.name}</Text>
               <Text style={styles.selectedType}>
-                {EQUIPMENT_TYPE_LABELS[selectedEquipment.type]}
+                {t(EQUIPMENT_TYPE_LABELS[selectedEquipment.type])}
                 {selectedEquipment.hostname ? ` · ${selectedEquipment.hostname}` : ''}
               </Text>
             </View>
@@ -216,7 +266,7 @@ export default function SiteMapScreen() {
               }}
             >
               <MaterialIcons name="visibility" size={16} color={Colors.primary} />
-              <Text style={styles.selectedActionText}>Détails</Text>
+              <Text style={styles.selectedActionText}>{t('map.details')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.selectedAction}
@@ -226,7 +276,7 @@ export default function SiteMapScreen() {
               }}
             >
               <MaterialIcons name="edit-location" size={16} color={Colors.secondary} />
-              <Text style={styles.selectedActionText}>Position</Text>
+              <Text style={styles.selectedActionText}>{t('map.position')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -253,8 +303,8 @@ export default function SiteMapScreen() {
                 <View style={styles.listItemInfo}>
                   <Text style={styles.listItemName} numberOfLines={1}>{item.name}</Text>
                   <Text style={styles.listItemDetail}>
-                    {EQUIPMENT_TYPE_LABELS[item.type]}
-                    {item.latitude != null ? ' · Géolocalisé' : ' · Sans position'}
+                    {t(EQUIPMENT_TYPE_LABELS[item.type])}
+                    {item.latitude != null ? ` · ${t('map.geolocatedLabel')}` : ` · ${t('map.noPosition')}`}
                   </Text>
                 </View>
                 {item.latitude != null && (
@@ -264,7 +314,7 @@ export default function SiteMapScreen() {
             )}
             ListEmptyComponent={
               <View style={styles.emptyList}>
-                <Text style={styles.emptyListText}>Aucun équipement</Text>
+                <Text style={styles.emptyListText}>{t('map.noEquipment')}</Text>
               </View>
             }
           />
@@ -344,7 +394,7 @@ const styles = StyleSheet.create({
   },
   statsBar: {
     position: 'absolute',
-    top: Spacing.md,
+    bottom: Spacing.md,
     left: Spacing.md,
     flexDirection: 'row',
     alignItems: 'center',

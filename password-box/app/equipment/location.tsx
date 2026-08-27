@@ -16,12 +16,15 @@ import { Equipment } from '../../lib/types';
 import { getEquipmentById, saveEquipment } from '../../lib/database';
 import LeafletMap, { MapMarker } from '../../components/LeafletMap';
 import { cacheAreaForZooms, isOnline } from '../../lib/tile-cache';
+import { getPrecisePosition } from '../../lib/location';
+import { useI18n } from '../../i18n';
 
 const ACCURACY_THRESHOLD = 5;
 
 export default function EquipmentLocationScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { t, tt } = useI18n();
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
@@ -31,6 +34,7 @@ export default function EquipmentLocationScreen() {
   const [mapReady, setMapReady] = useState(false);
   const [caching, setCaching] = useState(false);
   const [cacheProgress, setCacheProgress] = useState('');
+  const [locBusy, setLocBusy] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -65,32 +69,42 @@ export default function EquipmentLocationScreen() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission refusée', 'Activez la localisation dans les paramètres.');
+        Alert.alert(t('equipment.locationNoPermissions'), t('equipment.locationNoPermissionsMsg'));
         return;
       }
 
-      const loc = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.BestForNavigation,
-      });
+      setLocBusy(true);
+      const pos = await getPrecisePosition(ACCURACY_THRESHOLD);
+      setLocBusy(false);
 
-      const accuracy = loc.coords.accuracy ?? 0;
-      setGpsAccuracy(accuracy);
+      if (!pos) {
+        Alert.alert(t('common.error'), t('equipment.locationErr'));
+        return;
+      }
 
-      if (accuracy > ACCURACY_THRESHOLD) {
+      setGpsAccuracy(pos.accuracy);
+
+      if (pos.accuracy > ACCURACY_THRESHOLD) {
         Alert.alert(
-          'Précision insuffisante',
-          `Précision GPS: ${accuracy.toFixed(1)}m. La précision requise est de ${ACCURACY_THRESHOLD}m.\n\nDéplacez-vous dans un espace ouvert et réessayez.`,
+          t('equipment.locationLowAcc'),
+          t('equipment.locationLowAccMsg', {
+            accuracy: pos.accuracy.toFixed(1),
+            samples: pos.samples,
+            threshold: ACCURACY_THRESHOLD,
+          }),
           [
-            { text: 'Annuler', style: 'cancel' },
-            { text: 'Utiliser quand même', onPress: () => applyPosition(loc.coords.latitude, loc.coords.longitude, accuracy) },
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('equipment.locationUseAnyway'), onPress: () => applyPosition(pos.latitude, pos.longitude, pos.accuracy) },
           ]
         );
         return;
       }
 
-      applyPosition(loc.coords.latitude, loc.coords.longitude, accuracy);
+      applyPosition(pos.latitude, pos.longitude, pos.accuracy);
     } catch {
-      Alert.alert('Erreur', "Impossible d'obtenir la position GPS.");
+      Alert.alert(t('common.error'), t('equipment.locationErr'));
+    } finally {
+      setLocBusy(false);
     }
   };
 
@@ -117,7 +131,7 @@ export default function EquipmentLocationScreen() {
       });
       router.back();
     } catch {
-      Alert.alert('Erreur', "Impossible d'enregistrer la position.");
+      Alert.alert(t('common.error'), t('equipment.locationSaveErr'));
     } finally {
       setSaving(false);
     }
@@ -125,12 +139,12 @@ export default function EquipmentLocationScreen() {
 
   const handleClearLocation = () => {
     Alert.alert(
-      'Effacer la position',
-      'Supprimer la position enregistrée de cet équipement ?',
+      t('equipment.locationClearTitle'),
+      t('equipment.locationClearMsg'),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Effacer',
+          text: t('equipment.locationClear'),
           style: 'destructive',
           onPress: () => {
             setLatitude(null);
@@ -145,12 +159,12 @@ export default function EquipmentLocationScreen() {
   const handleCacheTiles = async () => {
     const online = await isOnline();
     if (!online) {
-      Alert.alert('Hors ligne', 'Connectez-vous à Internet pour télécharger les tuiles de carte.');
+      Alert.alert(t('equipment.cacheTitle'), t('equipment.cacheMsg'));
       return;
     }
 
     setCaching(true);
-    setCacheProgress('Téléchargement des tuiles...');
+    setCacheProgress(t('equipment.cacheDownloading'));
 
     try {
       const center = latitude != null && longitude != null
@@ -158,13 +172,13 @@ export default function EquipmentLocationScreen() {
         : await getSiteCenter();
 
       await cacheAreaForZooms(center.latitude, center.longitude, 14, 18, 4, (zoom, dl, total) => {
-        setCacheProgress(`Zoom ${zoom}: ${dl}/${total} tuiles`);
+        setCacheProgress(t('map.tileProgress', { zoom, done: dl, total }));
       });
 
-      setCacheProgress('Terminé !');
-      Alert.alert('Succès', 'La carte a été téléchargée pour une utilisation hors ligne.');
+      setCacheProgress(t('map.cacheDone'));
+      Alert.alert(t('map.cacheSuccess'), t('map.cacheDoneMsg'));
     } catch {
-      Alert.alert('Erreur', 'Erreur lors du téléchargement des tuiles.');
+      Alert.alert(t('map.cacheError'), t('map.cacheErrorMsg2'));
     } finally {
       setCaching(false);
       setTimeout(() => setCacheProgress(''), 2000);
@@ -194,13 +208,13 @@ export default function EquipmentLocationScreen() {
           <MaterialIcons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          Position — {equipment.name}
+          {t('equipment.locationTitle', { name: equipment.name })}
         </Text>
         <TouchableOpacity onPress={handleSave} style={styles.saveBtn} disabled={saving}>
           {saving ? (
             <ActivityIndicator size="small" color={Colors.white} />
           ) : (
-            <Text style={styles.saveBtnText}>Enregistrer</Text>
+            <Text style={styles.saveBtnText}>{t('common.save')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -234,9 +248,14 @@ export default function EquipmentLocationScreen() {
         <TouchableOpacity
           style={styles.toolBtn}
           onPress={captureGPS}
+          disabled={locBusy}
         >
-          <MaterialIcons name="my-location" size={22} color={Colors.primary} />
-          <Text style={styles.toolBtnText}>GPS</Text>
+          {locBusy ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : (
+            <MaterialIcons name="my-location" size={22} color={Colors.primary} />
+          )}
+          <Text style={styles.toolBtnText}>{locBusy ? t('equipment.locationCapture') : t('equipment.locationGps')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -245,13 +264,13 @@ export default function EquipmentLocationScreen() {
           disabled={caching}
         >
           <MaterialIcons name="cloud-download" size={22} color={Colors.secondary} />
-          <Text style={styles.toolBtnText}>Cache</Text>
+          <Text style={styles.toolBtnText}>{t('equipment.locationCache')}</Text>
         </TouchableOpacity>
 
         {latitude != null && (
           <TouchableOpacity style={styles.toolBtn} onPress={handleClearLocation}>
             <MaterialIcons name="delete-outline" size={22} color={Colors.error} />
-            <Text style={styles.toolBtnText}>Effacer</Text>
+            <Text style={styles.toolBtnText}>{t('equipment.locationClear')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -273,8 +292,7 @@ export default function EquipmentLocationScreen() {
       <View style={styles.infoBox}>
         <MaterialIcons name="info-outline" size={16} color={Colors.textMuted} />
         <Text style={styles.infoText}>
-          Appuyez sur la carte pour placer le point, ou utilisez le GPS pour la position actuelle.
-          Précision requise: {ACCURACY_THRESHOLD}m.
+          {t('equipment.locationInfo', { threshold: ACCURACY_THRESHOLD })}
         </Text>
       </View>
     </View>

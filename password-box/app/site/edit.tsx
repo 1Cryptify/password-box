@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
-  Platform,
   Linking,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -18,10 +17,12 @@ import { Colors, Spacing, BorderRadius, FontSize } from '../../constants/theme';
 import { SiteType, SITE_TYPE_LABELS } from '../../lib/types';
 import { saveSite, getSite } from '../../lib/database';
 import { getPosition } from '../../lib/location';
+import { useI18n } from '../../i18n';
 
 export default function EditSiteScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { t, tt } = useI18n();
   const [name, setName] = useState('');
   const [type, setType] = useState<SiteType>('entreprise');
   const [address, setAddress] = useState('');
@@ -57,11 +58,11 @@ export default function EditSiteScreen() {
       const servicesEnabled = await Location.hasServicesEnabledAsync();
       if (!servicesEnabled) {
         Alert.alert(
-          'Localisation désactivée',
-          'Le GPS est éteint. Activez la localisation dans les paramètres puis réessayez.',
+          t('site.locDisabledTitle'),
+          t('site.locDisabledMsg'),
           [
-            { text: 'Annuler', style: 'cancel' },
-            { text: 'Paramètres', onPress: () => Linking.openSettings() },
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('common.settings'), onPress: () => Linking.openSettings() },
           ]
         );
         return;
@@ -70,11 +71,11 @@ export default function EditSiteScreen() {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert(
-          'Permission refusée',
-          'Autorisez l\'accès à la localisation pour utiliser le GPS.',
+          t('site.locPermissions'),
+          t('site.locPermissionsMsg'),
           [
-            { text: 'Annuler', style: 'cancel' },
-            { text: 'Paramètres', onPress: () => Linking.openSettings() },
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('common.settings'), onPress: () => Linking.openSettings() },
           ]
         );
         return;
@@ -83,8 +84,8 @@ export default function EditSiteScreen() {
       const loc = await getPosition();
       if (!loc) {
         Alert.alert(
-          'Erreur',
-          'Impossible d\'obtenir la position. Approchez-vous d\'une fenêtre ou sortez à l\'extérieur, puis réessayez.'
+          t('common.error'),
+          t('site.locError')
         );
         return;
       }
@@ -103,10 +104,10 @@ export default function EditSiteScreen() {
           setAddress(parts.join(', '));
         }
       } catch {
-        Alert.alert('Erreur', 'La position a été enregistrée mais l\'adresse n\'a pas pu être déterminée.');
+        Alert.alert(t('common.error'), t('site.locAddrError'));
       }
     } catch {
-      Alert.alert('Erreur', 'Impossible d\'obtenir la position.');
+      Alert.alert(t('common.error'), t('site.locGetError'));
     } finally {
       setLoadingLocation(false);
     }
@@ -114,7 +115,7 @@ export default function EditSiteScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Erreur', 'Le nom est obligatoire.');
+      Alert.alert(t('common.error'), t('site.nameRequired'));
       return;
     }
     await saveSite({
@@ -134,50 +135,55 @@ export default function EditSiteScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior="padding"
+      keyboardVerticalOffset={0}
     >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialIcons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Modifier le site</Text>
+        <Text style={styles.headerTitle}>{t('site.editTitle')}</Text>
         <TouchableOpacity onPress={handleSave} style={styles.saveBtn}>
-          <Text style={styles.saveBtnText}>Enregistrer</Text>
+          <Text style={styles.saveBtnText}>{t('common.save')}</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.label}>Nom du site *</Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.label}>{t('site.name')}</Text>
         <TextInput
           style={styles.input}
           value={name}
           onChangeText={setName}
-          placeholder="Ex: Bureau Paris"
+          placeholder={t('site.namePlaceholder')}
           placeholderTextColor={Colors.textMuted}
         />
 
-        <Text style={styles.label}>Type de site</Text>
+        <Text style={styles.label}>{t('site.typeLabel')}</Text>
         <View style={styles.typeGrid}>
-          {siteTypes.map((t) => (
+          {siteTypes.map((siteType) => (
             <TouchableOpacity
-              key={t}
-              style={[styles.typeChip, type === t && styles.typeChipActive]}
-              onPress={() => setType(t)}
+              key={siteType}
+              style={[styles.typeChip, type === siteType && styles.typeChipActive]}
+              onPress={() => setType(siteType)}
             >
-              <Text style={[styles.typeChipText, type === t && styles.typeChipTextActive]}>
-                {SITE_TYPE_LABELS[t]}
+              <Text style={[styles.typeChipText, type === siteType && styles.typeChipTextActive]}>
+                {t(SITE_TYPE_LABELS[siteType])}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <Text style={styles.label}>Adresse</Text>
+        <Text style={styles.label}>{t('site.address')}</Text>
         <View style={styles.addressRow}>
           <TextInput
             style={[styles.input, { flex: 1 }]}
             value={address}
             onChangeText={setAddress}
-            placeholder="Adresse complète"
+            placeholder={t('site.addressFull')}
             placeholderTextColor={Colors.textMuted}
           />
           <TouchableOpacity
@@ -202,12 +208,12 @@ export default function EditSiteScreen() {
           </View>
         )}
 
-        <Text style={styles.label}>Notes</Text>
+        <Text style={styles.label}>{t('site.notes')}</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
           value={notes}
           onChangeText={setNotes}
-          placeholder="Informations supplémentaires..."
+          placeholder={t('site.extraInfo')}
           placeholderTextColor={Colors.textMuted}
           multiline
           numberOfLines={4}

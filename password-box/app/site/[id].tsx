@@ -31,10 +31,13 @@ import {
 } from '../../lib/database';
 import EquipmentCard from '../../components/EquipmentCard';
 import CredentialCard from '../../components/CredentialCard';
+import LeafletMap, { MapMarker } from '../../components/LeafletMap';
+import { useI18n } from '../../i18n';
 
 export default function SiteDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { t, tt } = useI18n();
   const [site, setSite] = useState<Site | null>(null);
   const [equipmentList, setEquipmentList] = useState<Equipment[]>([]);
   const [credentials, setCredentials] = useState<Credential[]>([]);
@@ -57,7 +60,8 @@ export default function SiteDetailScreen() {
     if (s && getSiteMode(s) === 'personnel') {
       const creds = await getCredentialsBySite(id);
       setCredentials(creds);
-      setEquipmentList([]);
+      const eq = await getEquipmentBySite(id);
+      setEquipmentList(eq);
       setCredCounts({});
     } else {
       const eq = await getEquipmentBySite(id);
@@ -84,12 +88,12 @@ export default function SiteDetailScreen() {
 
   const handleDeleteEquipment = (eq: Equipment) => {
     Alert.alert(
-      "Supprimer l'equipement",
-      `Supprimer "${eq.name}" et ses identifiants ?`,
+      t('site.detail.deleteEquipmentTitle'),
+      t('site.detail.deleteEquipment', { name: eq.name }),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             await deleteEquipment(eq.id);
@@ -102,12 +106,12 @@ export default function SiteDetailScreen() {
 
   const handleDeleteCredential = (cred: Credential) => {
     Alert.alert(
-      "Supprimer l'identifiant",
-      `Supprimer "${cred.label}" ?`,
+      t('site.detail.deleteCredentialTitle'),
+      t('site.detail.deleteCredential', { name: cred.label }),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             await deleteCredential(cred.id);
@@ -120,12 +124,12 @@ export default function SiteDetailScreen() {
 
   const handleDeleteSite = () => {
     const msg = isPersonal
-      ? `Supprimer "${site?.name}" et tous ses identifiants ?`
-      : `Supprimer "${site?.name}" et tout son contenu ?`;
-    Alert.alert('Supprimer', msg, [
-      { text: 'Annuler', style: 'cancel' },
+      ? t('home.deleteService', { name: site?.name ?? '' })
+      : t('site.detail.deleteSite', { name: site?.name ?? '' });
+    Alert.alert(t('common.delete'), msg, [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Supprimer',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           await deleteSite(id!);
@@ -153,6 +157,32 @@ export default function SiteDetailScreen() {
     }
   };
 
+  const getMiniCenter = (): { latitude: number; longitude: number } => {
+    if (site?.latitude && site?.longitude) {
+      return { latitude: site.latitude, longitude: site.longitude };
+    }
+    const located = equipmentList.filter((e) => e.latitude != null && e.longitude != null);
+    if (located.length > 0) {
+      const avgLat = located.reduce((s, e) => s + e.latitude!, 0) / located.length;
+      const avgLng = located.reduce((s, e) => s + e.longitude!, 0) / located.length;
+      return { latitude: avgLat, longitude: avgLng };
+    }
+    return { latitude: 48.8566, longitude: 2.3522 };
+  };
+
+  const getMiniMarkers = (): MapMarker[] => {
+    return equipmentList
+      .filter((e) => e.latitude != null && e.longitude != null)
+      .map((e) => ({
+        id: e.id,
+        latitude: e.latitude!,
+        longitude: e.longitude!,
+        title: e.name,
+      }));
+  };
+
+  const openBigMap = () => router.push(`/site/map?id=${id}`);
+
   if (!site) return null;
 
   return (
@@ -179,7 +209,7 @@ export default function SiteDetailScreen() {
         <View style={styles.siteInfo}>
           <View style={styles.infoRow}>
             <MaterialIcons name="category" size={18} color={Colors.primary} />
-            <Text style={styles.infoText}>{SITE_TYPE_LABELS[site.type]}</Text>
+            <Text style={styles.infoText}>{t(SITE_TYPE_LABELS[site.type])}</Text>
           </View>
           {site.address ? (
             <TouchableOpacity style={styles.infoRow} onPress={openMap}>
@@ -197,6 +227,28 @@ export default function SiteDetailScreen() {
         </View>
       )}
 
+      {!isPersonal && (
+        <TouchableOpacity
+          style={styles.miniMapWrap}
+          activeOpacity={0.9}
+          onPress={openBigMap}
+        >
+          <LeafletMap
+            center={getMiniCenter()}
+            zoom={17}
+            markers={getMiniMarkers()}
+            readOnly
+            onTap={openBigMap}
+            onMarkerPress={openBigMap}
+            style={styles.miniMap}
+          />
+          <View style={styles.miniMapBadge} pointerEvents="none">
+            <MaterialIcons name="map" size={16} color={Colors.white} />
+            <Text style={styles.miniMapBadgeText}>{t('site.detail.openMap')}</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+
       {isPersonal && site.notes ? (
         <View style={styles.siteInfo}>
           <View style={styles.infoRow}>
@@ -209,13 +261,13 @@ export default function SiteDetailScreen() {
       {isPersonal ? (
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
-            Identifiants ({credentials.length})
+            {t('site.detail.identifiers', { count: credentials.length })}
           </Text>
         </View>
       ) : (
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
-            Equipements ({equipmentList.length})
+            {t('site.detail.equipment', { count: equipmentList.length })}
           </Text>
         </View>
       )}
@@ -234,8 +286,8 @@ export default function SiteDetailScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <MaterialIcons name="vpn-key" size={48} color={Colors.surfaceBorder} />
-              <Text style={styles.emptyTitle}>Aucun identifiant</Text>
-              <Text style={styles.emptySubtitle}>Ajoutez des identifiants pour ce service</Text>
+              <Text style={styles.emptyTitle}>{t('site.detail.noCredential')}</Text>
+              <Text style={styles.emptySubtitle}>{t('site.detail.noCredentialSub')}</Text>
             </View>
           }
           contentContainerStyle={
@@ -264,8 +316,8 @@ export default function SiteDetailScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <MaterialIcons name="devices-other" size={48} color={Colors.surfaceBorder} />
-              <Text style={styles.emptyTitle}>Aucun equipement</Text>
-              <Text style={styles.emptySubtitle}>Appuyez sur + pour ajouter</Text>
+              <Text style={styles.emptyTitle}>{t('site.detail.noEquipment')}</Text>
+              <Text style={styles.emptySubtitle}>{t('site.detail.noEquipmentSub')}</Text>
             </View>
           }
           contentContainerStyle={
@@ -354,6 +406,35 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     borderWidth: 1,
     borderColor: Colors.surfaceBorder,
+  },
+  miniMapWrap: {
+    marginHorizontal: Spacing.lg,
+    height: 170,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
+  },
+  miniMap: {
+    flex: 1,
+  },
+  miniMapBadge: {
+    position: 'absolute',
+    bottom: Spacing.md,
+    left: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    backgroundColor: 'rgba(26,26,46,0.9)',
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+  },
+  miniMapBadgeText: {
+    color: Colors.white,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
   },
   infoRow: {
     flexDirection: 'row',

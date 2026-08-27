@@ -215,6 +215,25 @@ export async function clearAllData(): Promise<void> {
   await AsyncStorage.removeItem(KEYS.SITES);
   await AsyncStorage.removeItem(KEYS.EQUIPMENT);
   await AsyncStorage.removeItem(KEYS.CREDENTIALS);
+  await AsyncStorage.removeItem(KEYS.PIN);
+  await AsyncStorage.removeItem(KEYS.PIN_HASH);
+  await AsyncStorage.removeItem(KEYS.ENCRYPTION_KEY);
+  await AsyncStorage.removeItem(KEYS.FIRST_LAUNCH);
+  await AsyncStorage.removeItem(KEYS.LOCKOUT_UNTIL);
+  await AsyncStorage.removeItem(KEYS.PIN_ATTEMPTS);
+  await AsyncStorage.removeItem('@passwordbox_auth');
+  try {
+    const { deleteRecoveryKey } = await import('./recovery');
+    await deleteRecoveryKey();
+  } catch {
+    // récupération déjà absente
+  }
+  try {
+    const { clearTileCache } = await import('./tile-cache');
+    await clearTileCache();
+  } catch {
+    // cache absent
+  }
 }
 
 // --- Personal mode helpers ---

@@ -9,6 +9,7 @@ import {
   Modal,
   TextInput,
   FlatList,
+  Keyboard,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -19,12 +20,14 @@ import { hashPin } from '../../lib/encryption';
 import { createRecoveryKey, hasRecoveryKey } from '../../lib/recovery';
 import { AppData } from '../../lib/types';
 import PinInput from '../../components/PinInput';
+import { useI18n, LANGUAGES } from '../../i18n';
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { t, lang, setLang } = useI18n();
   const [whitelistModalVisible, setWhitelistModalVisible] = useState(false);
   const [pinModalVisible, setPinModalVisible] = useState(false);
-  const [pinModalAction, setPinModalAction] = useState<'export' | 'regen'>('export');
+  const [pinModalAction, setPinModalAction] = useState<'export' | 'regen' | 'erase'>('export');
   const [pinError, setPinError] = useState('');
   const [imeiInput, setImeiInput] = useState('');
   const [whitelist, setWhitelist] = useState<string[]>([]);
@@ -33,6 +36,25 @@ export default function SettingsScreen() {
   const [recoveryKey, setRecoveryKey] = useState('');
   const [recoveryKeySaved, setRecoveryKeySaved] = useState(false);
   const [hasRecovery, setHasRecovery] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  const [eraseModalVisible, setEraseModalVisible] = useState(false);
+  const [eraseStep, setEraseStep] = useState<'phrase' | 'pin'>('phrase');
+  const [erasePhrase, setErasePhrase] = useState('');
+  const [eraseError, setEraseError] = useState('');
+
+  React.useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', (e) =>
+      setKeyboardHeight(e.endCoordinates.height)
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardHeight(0)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   React.useEffect(() => {
     checkRecovery();
@@ -47,24 +69,6 @@ export default function SettingsScreen() {
   const loadDeviceLabel = async () => {
     const label = await getDeviceLabel();
     setDeviceLabel(label);
-  };
-
-  const handleClearData = () => {
-    Alert.alert(
-      'Effacer toutes les donnees',
-      'Cette action est irreversible. Continuer ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Effacer',
-          style: 'destructive',
-          onPress: async () => {
-            await clearAllData();
-            Alert.alert('Termine', 'Toutes les donnees ont ete effacees.');
-          },
-        },
-      ]
-    );
   };
 
   const openPinModal = (action: 'export' | 'regen') => {
@@ -84,22 +88,67 @@ export default function SettingsScreen() {
         setWhitelist([id]);
         setImeiInput('');
         setWhitelistModalVisible(true);
-      } else {
+      } else if (pinModalAction === 'regen') {
         const key = await createRecoveryKey();
         setRecoveryKey(key);
         setRecoveryKeySaved(false);
         setRecoveryModalVisible(true);
+      } else {
+        await doErase();
       }
     } else {
-      setPinError('PIN incorrect');
+      setPinError(t('settings.wrongPin'));
     }
+  };
+
+  const openErase = () => {
+    setErasePhrase('');
+    setEraseError('');
+    setEraseStep('phrase');
+    setEraseModalVisible(true);
+  };
+
+  const closeErase = () => {
+    setEraseModalVisible(false);
+    setErasePhrase('');
+    setEraseError('');
+    setEraseStep('phrase');
+  };
+
+  const handleErasePhrase = () => {
+    const expected = t('settings.clearPhrase').trim().toUpperCase();
+    const input = erasePhrase.trim().toUpperCase();
+    if (input !== expected) {
+      setEraseError(t('settings.clearWrongPhrase'));
+      return;
+    }
+    setEraseError('');
+    setEraseStep('pin');
+  };
+
+  const doErase = async () => {
+    await clearAllData();
+    setEraseModalVisible(false);
+    Alert.alert(
+      'PasswordBox',
+      t('settings.clearFinalMsg'),
+      [
+        {
+          text: t('common.ok'),
+          onPress: () => {
+            router.replace('/setup');
+          },
+        },
+      ],
+      { cancelable: false }
+    );
   };
 
   const addDeviceId = () => {
     const cleaned = imeiInput.trim().toUpperCase();
     if (!cleaned) return;
     if (whitelist.includes(cleaned)) {
-      Alert.alert('Doublon', 'Cet identifiant est deja dans la liste.');
+      Alert.alert(t('settings.duplicate'), t('settings.duplicateMsg'));
       return;
     }
     setWhitelist([...whitelist, cleaned]);
@@ -135,7 +184,7 @@ export default function SettingsScreen() {
 
       setWhitelistModalVisible(false);
     } catch (e) {
-      Alert.alert('Erreur', "Impossible d'exporter les donnees.");
+      Alert.alert(t('common.error'), t('settings.exportError'));
     }
   };
 
@@ -143,7 +192,7 @@ export default function SettingsScreen() {
     try {
       const Clipboard = await import('expo-clipboard');
       await Clipboard.setStringAsync(recoveryKey);
-      Alert.alert('Copié', 'Code de récupération copié.');
+      Alert.alert(t('common.copied'), t('settings.recoveryCopy'));
       setRecoveryKeySaved(true);
     } catch {
       setRecoveryKeySaved(true);
@@ -152,30 +201,39 @@ export default function SettingsScreen() {
 
   const handleRecoveryDone = async () => {
     if (!recoveryKeySaved) {
-      Alert.alert('Sauvegardez le code', 'Copiez ou notez le code avant de continuer.');
+      Alert.alert(t('settings.saveCodeTitle'), t('settings.saveCodeMsg'));
       return;
     }
     await checkRecovery();
     setRecoveryModalVisible(false);
-    Alert.alert('Terminé', 'Nouveau code de récupération enregistré.');
+    Alert.alert(t('common.success'), t('settings.recoverySaved'));
   };
 
-  const settingsItems = [
+  const securityItems = [
     {
       icon: 'lock',
-      label: 'Changer le PIN',
+      label: t('settings.changePin'),
       color: Colors.primary,
       onPress: () => router.push('/settings/change-pin'),
     },
     {
+      icon: 'language',
+      label: t('settings.language'),
+      color: Colors.textSecondary,
+      onPress: () => router.push('/settings/language'),
+    },
+  ];
+
+  const dataItems = [
+    {
       icon: 'file-upload',
-      label: 'Exporter les donnees',
+      label: t('settings.exportData'),
       color: Colors.secondary,
       onPress: () => openPinModal('export'),
     },
     {
       icon: 'file-download',
-      label: 'Importer des donnees',
+      label: t('settings.importData'),
       color: Colors.warning,
       onPress: () => router.push('/settings/import'),
     },
@@ -187,13 +245,13 @@ export default function SettingsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialIcons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Parametres</Text>
+        <Text style={styles.headerTitle}>{t('settings.title')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.sectionTitle}>Securite</Text>
-        {settingsItems.slice(0, 1).map((item) => (
+        <Text style={styles.sectionTitle}>{t('settings.security')}</Text>
+        {securityItems.map((item) => (
           <TouchableOpacity
             key={item.label}
             style={styles.menuItem}
@@ -203,30 +261,29 @@ export default function SettingsScreen() {
               <MaterialIcons name={item.icon as any} size={22} color={item.color} />
             </View>
             <Text style={styles.menuLabel}>{item.label}</Text>
+            <Text style={styles.langBadge}>{lang.toUpperCase()}</Text>
             <MaterialIcons name="chevron-right" size={22} color={Colors.textMuted} />
           </TouchableOpacity>
         ))}
 
-        <Text style={styles.sectionTitle}>Récupération</Text>
+        <Text style={styles.sectionTitle}>{t('settings.recovery')}</Text>
         <TouchableOpacity style={styles.menuItem} onPress={() => openPinModal('regen')}>
           <View style={[styles.menuIcon, { backgroundColor: Colors.success + '20' }]}>
             <MaterialIcons name="vpn-key" size={22} color={Colors.success} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.menuLabel}>
-              {hasRecovery ? 'Régénérer le code de récupération' : 'Générer un code de récupération'}
+              {hasRecovery ? t('settings.regenRecovery') : t('settings.genRecovery')}
             </Text>
             <Text style={styles.menuSubLabel}>
-              {hasRecovery
-                ? "L'ancien code sera remplacé. Requis la confirmation du PIN."
-                : "Code pour réinitialiser votre PIN en cas d'oublie"}
+              {hasRecovery ? t('settings.regenRecoverySub') : t('settings.genRecoverySub')}
             </Text>
           </View>
           <MaterialIcons name="chevron-right" size={22} color={Colors.textMuted} />
         </TouchableOpacity>
 
-        <Text style={styles.sectionTitle}>Donnees</Text>
-        {settingsItems.slice(1).map((item) => (
+        <Text style={styles.sectionTitle}>{t('settings.data')}</Text>
+        {dataItems.map((item) => (
           <TouchableOpacity
             key={item.label}
             style={styles.menuItem}
@@ -240,17 +297,17 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         ))}
 
-        <Text style={styles.sectionTitle}>Zone dangereuse</Text>
-        <TouchableOpacity style={styles.dangerItem} onPress={handleClearData}>
+        <Text style={styles.sectionTitle}>{t('settings.dangerZone')}</Text>
+        <TouchableOpacity style={styles.dangerItem} onPress={openErase}>
           <View style={styles.dangerIcon}>
             <MaterialIcons name="delete-forever" size={22} color={Colors.error} />
           </View>
-          <Text style={styles.dangerLabel}>Effacer toutes les donnees</Text>
+          <Text style={styles.dangerLabel}>{t('settings.clearAllData')}</Text>
         </TouchableOpacity>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>PasswordBox v1.0.0</Text>
-          <Text style={styles.footerText}>Gestionnaire de mots de passe reseau</Text>
+          <Text style={styles.footerText}>PasswordBox</Text>
         </View>
       </ScrollView>
 
@@ -263,15 +320,19 @@ export default function SettingsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {pinModalAction === 'export' ? 'Confirmation requise' : 'Confirmer le PIN'}
+              {pinModalAction === 'export' || pinModalAction === 'erase'
+                ? t('settings.pinConfirm')
+                : t('settings.confirmPin')}
             </Text>
             <Text style={styles.modalDescription}>
               {pinModalAction === 'export'
-                ? 'Saisissez votre PIN pour exporter les données.'
-                : 'Saisissez votre PIN pour régénérer le code de récupération.'}
+                ? t('settings.pinForExport')
+                : pinModalAction === 'erase'
+                ? t('settings.clearPinForErase')
+                : t('settings.pinForRegen')}
             </Text>
             <PinInput
-              key="pin-verify"
+              key={`pin-verify-${pinModalAction}`}
               length={6}
               onComplete={handlePinVerified}
               error={pinError}
@@ -280,7 +341,7 @@ export default function SettingsScreen() {
               style={styles.cancelBtnFull}
               onPress={() => setPinModalVisible(false)}
             >
-              <Text style={styles.cancelBtnText}>Annuler</Text>
+              <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -293,11 +354,12 @@ export default function SettingsScreen() {
         onRequestClose={() => setWhitelistModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Appareils autorisés</Text>
+          <View
+            style={[styles.modalContent, { paddingBottom: keyboardHeight + Spacing.xl }]}
+          >
+            <Text style={styles.modalTitle}>{t('settings.allowedDevices')}</Text>
             <Text style={styles.modalDescription}>
-              Identifiants des appareils autorisés à importer ce fichier.
-              Votre appareil ({deviceLabel}) est déjà inclus.
+              {t('settings.allowedDevicesDesc', { label: deviceLabel })}
             </Text>
 
             <View style={styles.imeiInputRow}>
@@ -305,7 +367,7 @@ export default function SettingsScreen() {
                 style={styles.imeiInput}
                 value={imeiInput}
                 onChangeText={setImeiInput}
-                placeholder="Saisir un identifiant..."
+                placeholder={t('settings.enterDeviceId')}
                 placeholderTextColor={Colors.textMuted}
                 autoCapitalize="characters"
               />
@@ -327,7 +389,7 @@ export default function SettingsScreen() {
                   />
                   <Text style={styles.imeiText} numberOfLines={1}>
                     {item}
-                    {index === 0 ? ' (vous)' : ''}
+                    {index === 0 ? ` ${t('settings.you')}` : ''}
                   </Text>
                   {index > 0 && (
                     <TouchableOpacity onPress={() => removeDeviceId(item)}>
@@ -343,14 +405,14 @@ export default function SettingsScreen() {
                 style={styles.cancelBtn}
                 onPress={() => setWhitelistModalVisible(false)}
               >
-                <Text style={styles.cancelBtnText}>Annuler</Text>
+                <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.exportBtn, whitelist.length === 0 && styles.exportBtnDisabled]}
                 onPress={exportPassFile}
                 disabled={whitelist.length === 0}
               >
-                <Text style={styles.exportBtnText}>Exporter .pass</Text>
+                <Text style={styles.exportBtnText}>{t('settings.exportPass')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -365,12 +427,12 @@ export default function SettingsScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Code de récupération</Text>
+            <Text style={styles.modalTitle}>{t('settings.recoveryCopy')}</Text>
             <Text style={styles.modalDescription}>
-              Ce code unique permet de réinitialiser votre PIN en cas d'oublie.
+              {t('settings.recoveryCopy')}
               {'\n\n'}
               <Text style={{ color: Colors.error, fontWeight: '600' }}>
-                Sauvegardez-le en sécurité. C'est votre seul moyen de récupération.
+                {t('setup.warningBold')}
               </Text>
             </Text>
 
@@ -381,7 +443,7 @@ export default function SettingsScreen() {
             <TouchableOpacity style={styles.copyBtn} onPress={copyRecoveryKey}>
               <MaterialIcons name="content-copy" size={18} color={Colors.white} />
               <Text style={styles.copyBtnText}>
-                {recoveryKeySaved ? 'Copié' : 'Copier le code'}
+                {recoveryKeySaved ? t('common.copied') : t('setup.copyCode')}
               </Text>
             </TouchableOpacity>
 
@@ -392,7 +454,7 @@ export default function SettingsScreen() {
               >
                 {recoveryKeySaved && <MaterialIcons name="check" size={16} color={Colors.white} />}
               </TouchableOpacity>
-              <Text style={styles.checkLabel}>J'ai sauvegardé ce code en sécurité</Text>
+              <Text style={styles.checkLabel}>{t('setup.savedCheck')}</Text>
             </View>
 
             <View style={styles.modalActions}>
@@ -400,16 +462,82 @@ export default function SettingsScreen() {
                 style={styles.cancelBtn}
                 onPress={() => setRecoveryModalVisible(false)}
               >
-                <Text style={styles.cancelBtnText}>Fermer</Text>
+                <Text style={styles.cancelBtnText}>{t('common.close')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.exportBtn, !recoveryKeySaved && styles.exportBtnDisabled]}
                 onPress={handleRecoveryDone}
                 disabled={!recoveryKeySaved}
               >
-                <Text style={styles.exportBtnText}>Confirmer</Text>
+                <Text style={styles.exportBtnText}>{t('common.confirm')}</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={eraseModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={closeErase}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {eraseStep === 'phrase' ? (
+              <>
+                <Text style={[styles.modalTitle, { color: Colors.error }]}>
+                  {t('settings.clearAllData')}
+                </Text>
+                <Text style={styles.modalDescription}>
+                  {t('settings.clearConfirmPin')}
+                </Text>
+                <Text style={[styles.phraseHint, { color: Colors.error, fontWeight: '700' }]}>
+                  {t('settings.clearPhrase')}
+                </Text>
+                <TextInput
+                  style={styles.phraseInput}
+                  value={erasePhrase}
+                  onChangeText={(v) => {
+                    setErasePhrase(v);
+                    if (eraseError) setEraseError('');
+                  }}
+                  placeholder={t('settings.clearPhrasePlaceholder')}
+                  placeholderTextColor={Colors.textMuted}
+                  autoCapitalize="characters"
+                />
+                {eraseError ? <Text style={styles.errorText}>{eraseError}</Text> : null}
+                <View style={styles.modalActions}>
+                  <TouchableOpacity style={styles.cancelBtn} onPress={closeErase}>
+                    <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.exportBtn}
+                    onPress={handleErasePhrase}
+                  >
+                    <Text style={styles.exportBtnText}>{t('common.continue')}</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={[styles.modalTitle, { color: Colors.error }]}>
+                  {t('settings.clearAllData')}
+                </Text>
+                <Text style={styles.modalDescription}>
+                  {t('settings.clearPinForErase')}
+                </Text>
+                <PinInput
+                  key="pin-erase"
+                  length={6}
+                  onComplete={handlePinVerified}
+                  error={pinError}
+                />
+                <TouchableOpacity style={styles.cancelBtnFull} onPress={closeErase}>
+                  <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
       </Modal>
@@ -485,6 +613,12 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     fontSize: FontSize.xs,
     marginTop: 2,
+  },
+  langBadge: {
+    color: Colors.primary,
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+    marginRight: Spacing.sm,
   },
   dangerItem: {
     flexDirection: 'row',
@@ -622,6 +756,29 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: FontSize.md,
     fontWeight: '600',
+  },
+  phraseHint: {
+    fontSize: FontSize.lg,
+    fontWeight: '800',
+    letterSpacing: 1,
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+  },
+  phraseInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    color: Colors.text,
+    fontSize: FontSize.md,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
+    marginBottom: Spacing.lg,
+  },
+  errorText: {
+    color: Colors.error,
+    fontSize: FontSize.sm,
+    marginBottom: Spacing.md,
   },
   keyBox: {
     backgroundColor: Colors.surface,

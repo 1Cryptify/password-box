@@ -14,6 +14,7 @@ import {
 } from '../lib/database';
 import { hashPin } from '../lib/encryption';
 import PinInput from '../components/PinInput';
+import { useI18n } from '../i18n';
 
 function formatTime(ms: number): string {
   const totalSec = Math.ceil(ms / 1000);
@@ -27,6 +28,7 @@ function formatTime(ms: number): string {
 
 export default function PinScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const [error, setError] = useState('');
   const [attempts, setAttemptsState] = useState(0);
   const [pinKey, setPinKey] = useState(0);
@@ -95,11 +97,11 @@ export default function PinScreen() {
       if (newAttempts >= 5) {
         await setLockout();
         setLocked(true);
-        setError('Trop de tentatives. Verrouille 3 heures.');
+        setError(t('auth.tooMany'));
         const until = Date.now() + 3 * 60 * 60 * 1000;
         startCountdown(until);
       } else {
-        setError(`PIN incorrect (${newAttempts}/5)`);
+        setError(t('auth.wrongPin', { attempts: newAttempts }));
       }
     }
   };
@@ -114,11 +116,11 @@ export default function PinScreen() {
             color={locked ? Colors.error : Colors.primary}
           />
         </View>
-        <Text style={styles.title}>Déverrouillage</Text>
+        <Text style={styles.title}>{t('auth.unlockTitle')}</Text>
         <Text style={styles.subtitle}>
           {locked
-            ? `Verrouillé. Réessayez dans ${lockoutRemaining}`
-            : 'Saisissez votre PIN'}
+            ? t('auth.locked', { time: lockoutRemaining })
+            : t('auth.enterPin')}
         </Text>
       </View>
 
@@ -137,7 +139,7 @@ export default function PinScreen() {
             onPress={() => router.push('/recovery')}
           >
             <MaterialIcons name="help-outline" size={16} color={Colors.textMuted} />
-            <Text style={styles.recoveryLinkText}>PIN oublié ?</Text>
+            <Text style={styles.recoveryLinkText}>{t('auth.forgotPin')}</Text>
           </TouchableOpacity>
         </View>
       )}

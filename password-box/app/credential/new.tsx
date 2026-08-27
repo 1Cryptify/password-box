@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -16,10 +15,12 @@ import { Colors, Spacing, BorderRadius, FontSize } from '../../constants/theme';
 import { AuthType, AUTH_TYPE_LABELS } from '../../lib/types';
 import { saveCredential } from '../../lib/database';
 import { generateId } from '../../lib/encryption';
+import { useI18n } from '../../i18n';
 
 export default function NewCredentialScreen() {
   const router = useRouter();
   const { equipmentId } = useLocalSearchParams<{ equipmentId: string }>();
+  const { t, tt } = useI18n();
   const [label, setLabel] = useState('');
   const [authType, setAuthType] = useState<AuthType>('mot_de_passe');
   const [username, setUsername] = useState('');
@@ -33,7 +34,7 @@ export default function NewCredentialScreen() {
 
   const handleSave = async () => {
     if (!label.trim()) {
-      Alert.alert('Erreur', 'Le label est obligatoire.');
+      Alert.alert(t('common.error'), t('credential.labelRequired'));
       return;
     }
     if (!equipmentId) return;
@@ -57,29 +58,34 @@ export default function NewCredentialScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior="padding"
+      keyboardVerticalOffset={0}
     >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialIcons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nouvel identifiant</Text>
+        <Text style={styles.headerTitle}>{t('credential.newTitle')}</Text>
         <TouchableOpacity onPress={handleSave} style={styles.saveBtn}>
-          <Text style={styles.saveBtnText}>Enregistrer</Text>
+          <Text style={styles.saveBtnText}>{t('common.save')}</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.label}>Libelle *</Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.label}>{t('credential.label')}</Text>
         <TextInput
           style={styles.input}
           value={label}
           onChangeText={setLabel}
-          placeholder="Ex: Compte admin, Acces SSH..."
+          placeholder={t('credential.labelPlaceholder')}
           placeholderTextColor={Colors.textMuted}
         />
 
-        <Text style={styles.label}>Type d'authentification</Text>
+        <Text style={styles.label}>{t('credential.authType')}</Text>
         <View style={styles.chipGrid}>
           {authTypes.map((a) => (
             <TouchableOpacity
@@ -88,13 +94,13 @@ export default function NewCredentialScreen() {
               onPress={() => setAuthType(a)}
             >
               <Text style={[styles.chipText, authType === a && styles.chipTextActive]}>
-                {AUTH_TYPE_LABELS[a]}
+                {t(AUTH_TYPE_LABELS[a])}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <Text style={styles.label}>Nom d'utilisateur</Text>
+        <Text style={styles.label}>{t('credential.username')}</Text>
         <TextInput
           style={styles.input}
           value={username}
@@ -105,7 +111,7 @@ export default function NewCredentialScreen() {
           autoCorrect={false}
         />
 
-        <Text style={styles.label}>Mot de passe / Cle</Text>
+        <Text style={styles.label}>{t('credential.password')}</Text>
         <View style={styles.passwordRow}>
           <TextInput
             style={[styles.input, { flex: 1 }]}
@@ -129,32 +135,32 @@ export default function NewCredentialScreen() {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.label}>Port</Text>
+        <Text style={styles.label}>{t('credential.port')}</Text>
         <TextInput
           style={styles.input}
           value={port}
           onChangeText={setPort}
-          placeholder="Ex: 22, 80, 443"
+          placeholder={t('credential.portPlaceholder')}
           placeholderTextColor={Colors.textMuted}
           keyboardType="number-pad"
         />
 
-        <Text style={styles.label}>Informations supplementaires</Text>
+        <Text style={styles.label}>{t('credential.extraInfoTitle')}</Text>
         <TextInput
           style={styles.input}
           value={extraInfo}
           onChangeText={setExtraInfo}
-          placeholder="URL, OID, cle publique..."
+          placeholder={t('credential.extraInfoPlaceholder')}
           placeholderTextColor={Colors.textMuted}
           autoCapitalize="none"
         />
 
-        <Text style={styles.label}>Notes</Text>
+        <Text style={styles.label}>{t('common.notes')}</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
           value={notes}
           onChangeText={setNotes}
-          placeholder="Notes diverses..."
+          placeholder={t('credential.notesPlaceholder')}
           placeholderTextColor={Colors.textMuted}
           multiline
           numberOfLines={4}

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Credential, AUTH_TYPE_LABELS } from '../lib/types';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
+import { useI18n } from '../i18n';
 
 interface CredentialCardProps {
   credential: Credential;
@@ -12,6 +13,7 @@ interface CredentialCardProps {
 
 export default function CredentialCard({ credential, onPress, onLongPress }: CredentialCardProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const { t } = useI18n();
 
   const maskedPassword = credential.password
     ? '\u2022'.repeat(Math.min(credential.password.length, 16))
@@ -30,7 +32,7 @@ export default function CredentialCard({ credential, onPress, onLongPress }: Cre
           <Text style={styles.label} numberOfLines={1}>{credential.label}</Text>
         </View>
         <View style={styles.authBadge}>
-          <Text style={styles.authText}>{AUTH_TYPE_LABELS[credential.authType]}</Text>
+          <Text style={styles.authText}>{t(AUTH_TYPE_LABELS[credential.authType])}</Text>
         </View>
       </View>
 
@@ -63,7 +65,7 @@ export default function CredentialCard({ credential, onPress, onLongPress }: Cre
       {credential.port ? (
         <View style={styles.field}>
           <MaterialIcons name="settings-ethernet" size={14} color={Colors.textMuted} />
-          <Text style={styles.fieldValue}>Port: {credential.port}</Text>
+          <Text style={styles.fieldValue}>{t('component.port')}{credential.port}</Text>
         </View>
       ) : null}
     </TouchableOpacity>

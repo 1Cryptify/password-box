@@ -1,4 +1,4 @@
-export type SiteType = 'entreprise' | 'ecole' | 'bureau' | 'appartement' | 'datacenter' | 'hotel' | 'hopital' | 'autre';
+﻿export type SiteType = 'entreprise' | 'ecole' | 'bureau' | 'appartement' | 'datacenter' | 'hotel' | 'hopital' | 'autre';
 export type SiteMode = 'infrastructure' | 'personnel';
 
 export type EquipmentType =
@@ -18,6 +18,8 @@ export type OSType =
   | 'android' | 'ios' | 'autre';
 
 export type AuthType = 'mot_de_passe' | 'cle_ssh' | 'certificat' | 'token' | 'snmp' | 'api_key' | 'autre';
+
+import type { TranslationKey } from '../i18n/translations';
 
 export interface Site {
   id: string;
@@ -78,77 +80,77 @@ export interface PassFile {
   payload: string;
 }
 
-export const SITE_TYPE_LABELS: Record<SiteType, string> = {
-  entreprise: 'Entreprise',
-  ecole: 'École',
-  bureau: 'Bureau',
-  appartement: 'Appartement',
-  datacenter: 'Datacenter',
-  hotel: 'Hôtel',
-  hopital: 'Hôpital',
-  autre: 'Autre',
+export const SITE_TYPE_LABELS: Record<SiteType, TranslationKey> = {
+  entreprise: 'site.type.entreprise',
+  ecole: 'site.type.ecole',
+  bureau: 'site.type.bureau',
+  appartement: 'site.type.appartement',
+  datacenter: 'site.type.datacenter',
+  hotel: 'site.type.hotel',
+  hopital: 'site.type.hopital',
+  autre: 'site.type.autre',
 };
 
-export const EQUIPMENT_TYPE_LABELS: Record<EquipmentType, string> = {
-  routeur: 'Routeur',
-  switch: 'Switch',
-  firewall: 'Firewall',
-  serveur: 'Serveur',
-  pc: 'PC',
-  laptop: 'Laptop',
-  imprimante: 'Imprimante',
-  ap_wifi: "Point d'accès WiFi",
-  phone_ip: 'Téléphone IP',
-  cam_ip: 'Caméra IP',
-  nas: 'NAS',
-  ups: 'UPS',
-  tablet: 'Tablette',
-  pos: 'Terminal de caisse',
-  pbx: 'PBX / Standard téléphonique',
-  videooprojecteur: 'Vidéoprojecteur',
-  badgeuse: 'Badgeuse',
-  support_tv: 'Écran digital',
-  autre: 'Autre',
+export const EQUIPMENT_TYPE_LABELS: Record<EquipmentType, TranslationKey> = {
+  routeur: 'equipment.type.routeur',
+  switch: 'equipment.type.switch',
+  firewall: 'equipment.type.firewall',
+  serveur: 'equipment.type.serveur',
+  pc: 'equipment.type.pc',
+  laptop: 'equipment.type.laptop',
+  imprimante: 'equipment.type.imprimante',
+  ap_wifi: 'equipment.type.ap_wifi',
+  phone_ip: 'equipment.type.phone_ip',
+  cam_ip: 'equipment.type.cam_ip',
+  nas: 'equipment.type.nas',
+  ups: 'equipment.type.ups',
+  tablet: 'equipment.type.tablet',
+  pos: 'equipment.type.pos',
+  pbx: 'equipment.type.pbx',
+  videooprojecteur: 'equipment.type.videooprojecteur',
+  badgeuse: 'equipment.type.badgeuse',
+  support_tv: 'equipment.type.support_tv',
+  autre: 'equipment.type.autre',
 };
 
-export const OS_LABELS: Record<OSType, string> = {
-  windows_server: 'Windows Server',
-  windows_10: 'Windows 10',
-  windows_11: 'Windows 11',
-  windows_iot: 'Windows IoT',
-  linux_ubuntu: 'Linux Ubuntu',
-  linux_centos: 'Linux CentOS',
-  linux_debian: 'Linux Debian',
-  linux_redhat: 'Linux RedHat',
-  embedded_linux: 'Linux embarqué',
-  cisco_ios: 'Cisco IOS',
-  ios_xe: 'Cisco IOS-XE',
-  mikrotik_routeros: 'MikroTik RouterOS',
-  juniper_junos: 'Juniper JunOS',
-  fortinet_fortios: 'Fortinet FortiOS',
-  pfsense: 'pfSense',
-  opnsense: 'OPNsense',
-  unifi_os: 'Ubiquiti UniFi OS',
-  vmware_esxi: 'VMware ESXi',
-  unraid: 'Unraid',
-  synology_dsm: 'Synology DSM',
-  qnap_qts: 'QNAP QTS',
-  macos: 'macOS',
-  ipados: 'iPadOS',
-  chromeos: 'ChromeOS',
-  android: 'Android',
-  ios: 'iOS',
-  autre: 'Autre',
+export const OS_LABELS: Record<OSType, TranslationKey> = {
+  windows_server: 'os.windows_server',
+  windows_10: 'os.windows_10',
+  windows_11: 'os.windows_11',
+  windows_iot: 'os.windows_iot',
+  linux_ubuntu: 'os.linux_ubuntu',
+  linux_centos: 'os.linux_centos',
+  linux_debian: 'os.linux_debian',
+  linux_redhat: 'os.linux_redhat',
+  embedded_linux: 'os.embedded_linux',
+  cisco_ios: 'os.cisco_ios',
+  ios_xe: 'os.ios_xe',
+  mikrotik_routeros: 'os.mikrotik_routeros',
+  juniper_junos: 'os.juniper_junos',
+  fortinet_fortios: 'os.fortinet_fortios',
+  pfsense: 'os.pfsense',
+  opnsense: 'os.opnsense',
+  unifi_os: 'os.unifi_os',
+  vmware_esxi: 'os.vmware_esxi',
+  unraid: 'os.unraid',
+  synology_dsm: 'os.synology_dsm',
+  qnap_qts: 'os.qnap_qts',
+  macos: 'os.macos',
+  ipados: 'os.ipados',
+  chromeos: 'os.chromeos',
+  android: 'os.android',
+  ios: 'os.ios',
+  autre: 'os.autre',
 };
 
-export const AUTH_TYPE_LABELS: Record<AuthType, string> = {
-  mot_de_passe: 'Mot de passe',
-  cle_ssh: 'Clé SSH',
-  certificat: 'Certificat',
-  token: 'Token',
-  snmp: 'SNMP',
-  api_key: 'Clé API',
-  autre: 'Autre',
+export const AUTH_TYPE_LABELS: Record<AuthType, TranslationKey> = {
+  mot_de_passe: 'authType.mot_de_passe',
+  cle_ssh: 'authType.cle_ssh',
+  certificat: 'authType.certificat',
+  token: 'authType.token',
+  snmp: 'authType.snmp',
+  api_key: 'authType.api_key',
+  autre: 'authType.autre',
 };
 
 export const SITE_ICONS: Record<SiteType, string> = {
@@ -373,14 +375,14 @@ export function getSiteMode(site: Site): SiteMode {
 }
 
 export interface PersonalServiceCategory {
-  label: string;
+  label: TranslationKey;
   icon: string;
   services: { name: string; icon: string }[];
 }
 
 export const PERSONAL_SERVICE_CATEGORIES: PersonalServiceCategory[] = [
   {
-    label: 'Reseaux sociaux',
+    label: 'personal.category.social',
     icon: 'people',
     services: [
       { name: 'Facebook', icon: 'facebook' },
@@ -394,7 +396,7 @@ export const PERSONAL_SERVICE_CATEGORIES: PersonalServiceCategory[] = [
     ],
   },
   {
-    label: 'Messagerie',
+    label: 'personal.category.messaging',
     icon: 'email',
     services: [
       { name: 'Gmail', icon: 'mail' },
@@ -405,7 +407,7 @@ export const PERSONAL_SERVICE_CATEGORIES: PersonalServiceCategory[] = [
     ],
   },
   {
-    label: 'Banque & Finance',
+    label: 'personal.category.banking',
     icon: 'account-balance',
     services: [
       { name: 'PayPal', icon: 'payment' },
@@ -416,7 +418,7 @@ export const PERSONAL_SERVICE_CATEGORIES: PersonalServiceCategory[] = [
     ],
   },
   {
-    label: 'Divertissement',
+    label: 'personal.category.entertainment',
     icon: 'play-circle',
     services: [
       { name: 'Netflix', icon: 'movie' },
@@ -430,7 +432,7 @@ export const PERSONAL_SERVICE_CATEGORIES: PersonalServiceCategory[] = [
     ],
   },
   {
-    label: 'Cloud & Stockage',
+    label: 'personal.category.cloud',
     icon: 'cloud',
     services: [
       { name: 'Google Drive', icon: 'cloud' },
@@ -442,7 +444,7 @@ export const PERSONAL_SERVICE_CATEGORIES: PersonalServiceCategory[] = [
     ],
   },
   {
-    label: 'E-commerce',
+    label: 'personal.category.ecommerce',
     icon: 'shopping-cart',
     services: [
       { name: 'Amazon', icon: 'shopping-cart' },
@@ -454,7 +456,7 @@ export const PERSONAL_SERVICE_CATEGORIES: PersonalServiceCategory[] = [
     ],
   },
   {
-    label: 'Jeux',
+    label: 'personal.category.gaming',
     icon: 'sports-esports',
     services: [
       { name: 'Steam', icon: 'sports-esports' },
@@ -468,7 +470,7 @@ export const PERSONAL_SERVICE_CATEGORIES: PersonalServiceCategory[] = [
     ],
   },
   {
-    label: 'Productivite',
+    label: 'personal.category.productivity',
     icon: 'business-center',
     services: [
       { name: 'Microsoft 365', icon: 'description' },
@@ -481,7 +483,7 @@ export const PERSONAL_SERVICE_CATEGORIES: PersonalServiceCategory[] = [
     ],
   },
   {
-    label: 'Telephonie & Telecom',
+    label: 'personal.category.telecom',
     icon: 'phone',
     services: [
       { name: 'Free', icon: 'wifi' },
@@ -494,7 +496,7 @@ export const PERSONAL_SERVICE_CATEGORIES: PersonalServiceCategory[] = [
     ],
   },
   {
-    label: 'Developpement',
+    label: 'personal.category.dev',
     icon: 'code',
     services: [
       { name: 'GitHub', icon: 'code' },
@@ -510,7 +512,7 @@ export const PERSONAL_SERVICE_CATEGORIES: PersonalServiceCategory[] = [
     ],
   },
   {
-    label: 'Vie_pratique',
+    label: 'personal.category.everyday',
     icon: 'home',
     services: [
       { name: 'Uber', icon: 'directions-car' },

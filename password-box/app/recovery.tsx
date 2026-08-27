@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
-  Platform,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -15,9 +15,11 @@ import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
 import { verifyRecoveryKey } from '../lib/recovery';
 import { setPinHash, clearLockout, setAttempts } from '../lib/database';
 import PinInput from '../components/PinInput';
+import { useI18n } from '../i18n';
 
 export default function RecoveryScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const [step, setStep] = useState<'verify' | 'new' | 'confirm'>('verify');
   const [recoveryKey, setRecoveryKey] = useState('');
   const [newPin, setNewPin] = useState('');
@@ -26,7 +28,7 @@ export default function RecoveryScreen() {
 
   const handleVerifyKey = async () => {
     if (!recoveryKey.trim()) {
-      setError('Saisissez votre code de récupération');
+      setError(t('recovery.enterCode'));
       return;
     }
     setLoading(true);
@@ -36,7 +38,7 @@ export default function RecoveryScreen() {
       setStep('new');
       setError('');
     } else {
-      setError('Code de récupération invalide');
+      setError(t('recovery.invalidCode'));
     }
   };
 
@@ -48,7 +50,7 @@ export default function RecoveryScreen() {
 
   const handleConfirmPin = async (pin: string) => {
     if (pin !== newPin) {
-      setError('Les PIN ne correspondent pas');
+      setError(t('auth.pinMismatch'));
       setStep('new');
       setNewPin('');
       return;
@@ -62,37 +64,42 @@ export default function RecoveryScreen() {
       await setAttempts(0);
       setLoading(false);
       Alert.alert(
-        'PIN réinitialisé',
-        'Votre nouveau PIN a été enregistré.',
-        [{ text: 'OK', onPress: () => router.replace('/') }]
+        t('recovery.pinReset'),
+        t('recovery.pinResetMsg'),
+        [{ text: t('common.ok'), onPress: () => router.replace('/') }]
       );
     } catch {
       setLoading(false);
-      Alert.alert('Erreur', 'Impossible de réinitialiser le PIN.');
+      Alert.alert(t('common.error'), t('recovery.errorReset'));
     }
   };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior="padding"
+      keyboardVerticalOffset={0}
     >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialIcons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Récupération</Text>
+        <Text style={styles.headerTitle}>{t('recovery.title')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
       {step === 'verify' ? (
-        <View style={styles.content}>
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentScroll}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.iconContainer}>
             <MaterialIcons name="vpn-key" size={64} color={Colors.warning} />
           </View>
-          <Text style={styles.title}>Code de récupération</Text>
+          <Text style={styles.title}>{t('recovery.codeTitle')}</Text>
           <Text style={styles.subtitle}>
-            Saisissez votre code de récupération de 16 caractères pour réinitialiser votre PIN.
+            {t('recovery.subtitle')}
           </Text>
 
           <TextInput
@@ -102,7 +109,7 @@ export default function RecoveryScreen() {
               setRecoveryKey(t.toUpperCase());
               setError('');
             }}
-            placeholder="XXXX-XXXX-XXXX-XXXX"
+            placeholder={t('recovery.placeholder')}
             placeholderTextColor={Colors.textMuted}
             autoCapitalize="characters"
             autoCorrect={false}
@@ -116,21 +123,21 @@ export default function RecoveryScreen() {
             disabled={loading}
           >
             <Text style={styles.actionBtnText}>
-              {loading ? 'Vérification...' : 'Vérifier'}
+              {loading ? t('recovery.verifying') : t('recovery.verify')}
             </Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       ) : (
         <View style={styles.content}>
           <View style={styles.top}>
             <View style={styles.iconContainer}>
               <MaterialIcons name="lock-reset" size={64} color={Colors.success} />
             </View>
-            <Text style={styles.title}>Nouveau PIN</Text>
+            <Text style={styles.title}>{t('recovery.newPinTitle')}</Text>
             <Text style={styles.subtitle}>
               {step === 'new'
-                ? 'Code vérifié. Définissez votre nouveau PIN de 6 chiffres.'
-                : 'Confirmez votre nouveau PIN'}
+                ? t('recovery.codeVerified')
+                : t('recovery.confirmNewPin')}
             </Text>
           </View>
 
@@ -150,7 +157,7 @@ export default function RecoveryScreen() {
                   setError('');
                 }}
               >
-                <Text style={styles.backLinkText}>Retour</Text>
+                <Text style={styles.backLinkText}>{t('common.back')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -191,6 +198,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.xxl,
+  },
+  contentScroll: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.xxl,
+    paddingBottom: Spacing.xxxl,
   },
   top: {
     flex: 1,

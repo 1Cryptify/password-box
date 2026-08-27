@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View, StyleSheet, AppState } from 'react-native';
 import { Colors } from '../constants/theme';
 import { clearAuthenticated } from '../lib/database';
+import { I18nProvider } from '../i18n';
 
 export default function RootLayout() {
   useEffect(() => {
@@ -16,16 +17,18 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: Colors.background },
-          animation: 'slide_from_right',
-        }}
-      />
-    </View>
+    <I18nProvider>
+      <View style={styles.container}>
+        <StatusBar style="light" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: Colors.background },
+            animation: 'slide_from_right',
+          }}
+        />
+      </View>
+    </I18nProvider>
   );
 }
 

@@ -14,9 +14,11 @@ import { setPinHash, setFirstLaunchDone } from '../lib/database';
 import { hashPin } from '../lib/encryption';
 import { createRecoveryKey } from '../lib/recovery';
 import PinInput from '../components/PinInput';
+import { useI18n } from '../i18n';
 
 export default function SetupScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const [step, setStep] = useState<'create' | 'confirm' | 'recovery'>('create');
   const [firstPin, setFirstPin] = useState('');
   const [error, setError] = useState('');
@@ -37,7 +39,7 @@ export default function SetupScreen() {
       setRecoveryKey(key);
       setStep('recovery');
     } else {
-      setError('Les PIN ne correspondent pas');
+      setError(t('auth.pinMismatch'));
       setStep('create');
       setFirstPin('');
     }
@@ -46,9 +48,9 @@ export default function SetupScreen() {
   const handleRecoveryDone = async () => {
     if (!keySaved) {
       Alert.alert(
-        'Sauvegardez votre code',
-        'Vous devez copier ou noter votre code de récupération avant de continuer.',
-        [{ text: 'OK' }]
+        t('setup.saveCode'),
+        t('setup.saveCodeMsg'),
+        [{ text: t('common.ok') }]
       );
       return;
     }
@@ -60,7 +62,7 @@ export default function SetupScreen() {
     try {
       const Clipboard = await import('expo-clipboard');
       await Clipboard.setStringAsync(recoveryKey);
-      Alert.alert('Copié', 'Code de récupération copié dans le presse-papier.');
+      Alert.alert(t('setup.copied'), t('setup.recoveryCopied'));
       setKeySaved(true);
     } catch {
       setKeySaved(true);
@@ -74,21 +76,20 @@ export default function SetupScreen() {
           <View style={styles.iconContainer}>
             <MaterialIcons name="vpn-key" size={72} color={Colors.warning} />
           </View>
-          <Text style={styles.title}>Code de récupération</Text>
+          <Text style={styles.title}>{t('setup.recoveryTitle')}</Text>
           <Text style={styles.subtitle}>
-            Ce code vous permet de réinitialiser votre PIN si vous l'oubliez.
+            {t('recovery.intro')}
           </Text>
 
           <View style={styles.warningBox}>
             <MaterialIcons name="warning" size={24} color={Colors.error} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.warningTitle}>Important</Text>
+              <Text style={styles.warningTitle}>{t('setup.important')}</Text>
               <Text style={styles.warningText}>
-                Votre PIN est le seul moyen d'accéder à vos données.{'\n'}
-                Ce code de récupération est votre seul moyen de récupérer votre compte en cas d'oublie du PIN.
+                {t('setup.warningText')}
               </Text>
               <Text style={[styles.warningText, { marginTop: Spacing.sm, fontWeight: '700' }]}>
-                Copiez ou notez ce code et gardez-le en lieu sûr. Sans lui, vos données seront perdues.
+                {t('setup.warningBold')}
               </Text>
             </View>
           </View>
@@ -100,7 +101,7 @@ export default function SetupScreen() {
           <TouchableOpacity style={styles.copyBtn} onPress={copyKey}>
             <MaterialIcons name="content-copy" size={20} color={Colors.white} />
             <Text style={styles.copyBtnText}>
-              {keySaved ? 'Code copié' : 'Copier le code'}
+              {keySaved ? t('setup.codeCopied') : t('setup.copyCode')}
             </Text>
           </TouchableOpacity>
 
@@ -111,14 +112,14 @@ export default function SetupScreen() {
             >
               {keySaved && <MaterialIcons name="check" size={18} color={Colors.white} />}
             </TouchableOpacity>
-            <Text style={styles.checkLabel}>J'ai sauvegardé ce code en sécurité</Text>
+            <Text style={styles.checkLabel}>{t('setup.savedCheck')}</Text>
           </View>
 
           <TouchableOpacity
             style={[styles.continueBtn, !keySaved && styles.continueBtnDisabled]}
             onPress={handleRecoveryDone}
           >
-            <Text style={styles.continueBtnText}>Continuer</Text>
+            <Text style={styles.continueBtnText}>{t('common.continue')}</Text>
           </TouchableOpacity>
         </ScrollView>
       ) : (
@@ -134,8 +135,8 @@ export default function SetupScreen() {
             <Text style={styles.title}>PasswordBox</Text>
             <Text style={styles.subtitle}>
               {step === 'create'
-                ? 'Créez votre PIN de sécurité (6 chiffres)'
-                : 'Confirmez votre PIN'}
+                ? t('auth.createPin')
+                : t('auth.confirmPin')}
             </Text>
           </View>
 
@@ -160,7 +161,7 @@ export default function SetupScreen() {
                   setError('');
                 }}
               >
-                <Text style={styles.backBtnText}>Retour</Text>
+                <Text style={styles.backBtnText}>{t('common.back')}</Text>
               </TouchableOpacity>
             </View>
           )}

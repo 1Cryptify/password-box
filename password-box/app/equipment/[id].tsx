@@ -23,10 +23,12 @@ import {
   deleteCredential,
 } from '../../lib/database';
 import CredentialCard from '../../components/CredentialCard';
+import { useI18n } from '../../i18n';
 
 export default function EquipmentDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { t, tt } = useI18n();
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -53,12 +55,12 @@ export default function EquipmentDetailScreen() {
 
   const handleDeleteCredential = (cred: Credential) => {
     Alert.alert(
-      "Supprimer l'identifiant",
-      `Supprimer "${cred.label}" ?`,
+      t('site.detail.deleteCredentialTitle'),
+      t('site.detail.deleteCredential', { name: cred.label }),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             await deleteCredential(cred.id);
@@ -84,11 +86,11 @@ export default function EquipmentDetailScreen() {
       <View style={styles.eqInfo}>
         <View style={styles.infoRow}>
           <MaterialIcons name="category" size={16} color={Colors.secondary} />
-          <Text style={styles.infoText}>{getEquipmentTypeLabel(equipment)}</Text>
+          <Text style={styles.infoText}>{tt(getEquipmentTypeLabel(equipment))}</Text>
         </View>
         <View style={styles.infoRow}>
           <MaterialIcons name="computer" size={16} color={Colors.textMuted} />
-          <Text style={styles.infoText}>{getOSLabel(equipment)}</Text>
+          <Text style={styles.infoText}>{tt(getOSLabel(equipment))}</Text>
         </View>
         {equipment.brand ? (
           <View style={styles.infoRow}>
@@ -123,7 +125,7 @@ export default function EquipmentDetailScreen() {
           ]}>
             {equipment.latitude != null
               ? `${equipment.latitude!.toFixed(6)}, ${equipment.longitude!.toFixed(6)}`
-              : 'Géolocaliser cet équipement'}
+              : t('equipment.geolocateThis')}
           </Text>
           <MaterialIcons name="chevron-right" size={16} color={Colors.textMuted} />
         </TouchableOpacity>
@@ -131,7 +133,7 @@ export default function EquipmentDetailScreen() {
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
-          Identifiants ({credentials.length})
+          {t('site.detail.identifiers', { count: credentials.length })}
         </Text>
       </View>
 
@@ -148,8 +150,8 @@ export default function EquipmentDetailScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <MaterialIcons name="vpn-key" size={48} color={Colors.surfaceBorder} />
-            <Text style={styles.emptyTitle}>Aucun identifiant</Text>
-            <Text style={styles.emptySubtitle}>Ajoutez des identifiants pour cet équipement</Text>
+            <Text style={styles.emptyTitle}>{t('site.detail.noCredential')}</Text>
+            <Text style={styles.emptySubtitle}>{t('site.detail.noCredentialSub')}</Text>
           </View>
         }
         contentContainerStyle={

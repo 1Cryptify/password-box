@@ -23,9 +23,11 @@ import {
 } from '../lib/database';
 import SiteCard from '../components/SiteCard';
 import SearchBar from '../components/SearchBar';
+import { useI18n } from '../i18n';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const [sites, setSites] = useState<Site[]>([]);
   const [siteCounts, setSiteCounts] = useState<Record<string, number>>({});
   const [search, setSearch] = useState('');
@@ -89,12 +91,12 @@ export default function HomeScreen() {
   const handleDelete = (site: Site) => {
     const mode = getSiteMode(site);
     const msg = mode === 'personnel'
-      ? `Supprimer "${site.name}" et tous ses identifiants ?`
-      : `Supprimer "${site.name}" et tout son équipement ?`;
-    Alert.alert('Supprimer', msg, [
-      { text: 'Annuler', style: 'cancel' },
+      ? t('home.deleteService', { name: site.name })
+      : t('home.deleteSite', { name: site.name });
+    Alert.alert(t('home.deleteSiteTitle'), msg, [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Supprimer',
+        text: t('home.deleteSiteTitle'),
         style: 'destructive',
         onPress: async () => {
           await deleteSite(site.id);
@@ -113,8 +115,8 @@ export default function HomeScreen() {
   };
 
   const countLabel = activeMode === 'personnel'
-    ? `${filteredSites.length} service${filteredSites.length !== 1 ? 's' : ''}`
-    : `${filteredSites.length} site${filteredSites.length !== 1 ? 's' : ''}`;
+    ? t('home.serviceCount', { count: filteredSites.length })
+    : t('home.siteCount', { count: filteredSites.length });
 
   if (!isReady) return null;
 
@@ -144,7 +146,7 @@ export default function HomeScreen() {
             color={activeMode === 'infrastructure' ? Colors.white : Colors.textSecondary}
           />
           <Text style={[styles.segmentText, activeMode === 'infrastructure' && styles.segmentTextActive]}>
-            Infrastructure
+            {t('home.infrastructure')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -157,7 +159,7 @@ export default function HomeScreen() {
             color={activeMode === 'personnel' ? Colors.white : Colors.textSecondary}
           />
           <Text style={[styles.segmentText, activeMode === 'personnel' && styles.segmentTextActive]}>
-            Personnel
+            {t('home.personnel')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -165,7 +167,7 @@ export default function HomeScreen() {
       <SearchBar
         value={search}
         onChangeText={setSearch}
-        placeholder={activeMode === 'personnel' ? 'Rechercher un service...' : 'Rechercher un site...'}
+        placeholder={activeMode === 'personnel' ? t('home.searchService') : t('home.searchSite')}
       />
 
       <FlatList
@@ -187,12 +189,12 @@ export default function HomeScreen() {
               color={Colors.surfaceBorder}
             />
             <Text style={styles.emptyTitle}>
-              {activeMode === 'personnel' ? 'Aucun service' : 'Aucun site'}
+              {activeMode === 'personnel' ? t('home.noService') : t('home.noSite')}
             </Text>
             <Text style={styles.emptySubtitle}>
               {activeMode === 'personnel'
-                ? 'Appuyez sur + pour ajouter un service'
-                : 'Appuyez sur + pour ajouter un site'}
+                ? t('home.addServiceHint')
+                : t('home.addSiteHint')}
             </Text>
           </View>
         }

@@ -12,18 +12,20 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Colors, Spacing, BorderRadius, FontSize } from '../../constants/theme';
 import { importAllData } from '../../lib/database';
 import { readPassFile, getDeviceId } from '../../lib/passfile';
+import { useI18n } from '../../i18n';
 
 export default function ImportScreen() {
+  const { t, tt } = useI18n();
   const router = useRouter();
   const [importing, setImporting] = useState(false);
 
   const handleImport = () => {
     Alert.alert(
-      'Importer des donnees',
-      'Les donnees actuelles seront remplacees. Continuer ?',
+      t('import.confirmTitle'),
+      t('import.confirmMsg'),
       [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Continuer', onPress: pickFile },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('common.continue'), onPress: pickFile },
       ]
     );
   };
@@ -49,8 +51,8 @@ export default function ImportScreen() {
 
       if (!data) {
         Alert.alert(
-          'Acces refuse',
-          "Votre appareil n'est pas autorise a importer ce fichier ou le fichier est corrompu."
+          t('import.accessDeniedTitle'),
+          t('import.accessDeniedMsg')
         );
         setImporting(false);
         return;
@@ -63,14 +65,16 @@ export default function ImportScreen() {
       });
 
       Alert.alert(
-        'Succes',
-        data.sites.length + ' sites, ' +
-          data.equipment.length + ' equipements, ' +
-          data.credentials.length + ' identifiants importes.',
-        [{ text: 'OK', onPress: () => router.back() }]
+        t('common.success'),
+        t('import.successMsg', {
+          sites: data.sites.length,
+          equipment: data.equipment.length,
+          credentials: data.credentials.length,
+        }),
+        [{ text: t('common.ok'), onPress: () => router.back() }]
       );
     } catch (e) {
-      Alert.alert('Erreur', "Impossible d'importer le fichier.");
+      Alert.alert(t('import.error'), t('import.errorMsg'));
     } finally {
       setImporting(false);
     }
@@ -82,7 +86,7 @@ export default function ImportScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialIcons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Importer</Text>
+        <Text style={styles.headerTitle}>{t('import.title')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -90,11 +94,8 @@ export default function ImportScreen() {
         <View style={styles.iconContainer}>
           <MaterialIcons name="file-download" size={64} color={Colors.warning} />
         </View>
-        <Text style={styles.title}>Importer des donnees</Text>
-        <Text style={styles.description}>
-          Selectionnez un fichier .pass exporte depuis PasswordBox.
-          Votre identifiant d'appareil doit etre dans la liste blanche du fichier.
-        </Text>
+        <Text style={styles.title}>{t('import.title2')}</Text>
+        <Text style={styles.description}>{t('import.desc')}</Text>
 
         <TouchableOpacity
           style={styles.importBtn}
@@ -104,15 +105,13 @@ export default function ImportScreen() {
         >
           <MaterialIcons name="folder-open" size={24} color={Colors.white} />
           <Text style={styles.importBtnText}>
-            {importing ? 'Importation...' : 'Selectionner un fichier'}
+            {importing ? t('import.importing') : t('import.select')}
           </Text>
         </TouchableOpacity>
 
         <View style={styles.formatInfo}>
           <MaterialIcons name="info" size={16} color={Colors.textMuted} />
-          <Text style={styles.formatText}>
-            Format accepte: .pass (PasswordBox chiffré)
-          </Text>
+          <Text style={styles.formatText}>{t('import.formatInfo')}</Text>
         </View>
       </View>
     </View>

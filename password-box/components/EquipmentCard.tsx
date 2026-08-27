@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Equipment, EQUIPMENT_ICONS, getEquipmentTypeLabel, getOSLabel } from '../lib/types';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
+import { useI18n } from '../i18n';
 
 interface EquipmentCardProps {
   equipment: Equipment;
@@ -12,6 +13,7 @@ interface EquipmentCardProps {
 }
 
 export default function EquipmentCard({ equipment, credentialCount, onPress, onLongPress }: EquipmentCardProps) {
+  const { t, tt } = useI18n();
   return (
     <TouchableOpacity
       style={styles.card}
@@ -29,7 +31,7 @@ export default function EquipmentCard({ equipment, credentialCount, onPress, onL
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>{equipment.name}</Text>
         <Text style={styles.details}>
-          {getEquipmentTypeLabel(equipment)} &middot; {getOSLabel(equipment)}
+          {tt(getEquipmentTypeLabel(equipment))} &middot; {tt(getOSLabel(equipment))}
           {equipment.brand ? ` · ${equipment.brand}` : ''}
         </Text>
         {equipment.hostname ? (

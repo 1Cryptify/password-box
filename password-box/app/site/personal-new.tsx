@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
-  Platform,
   SectionList,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -20,9 +19,11 @@ import {
 } from '../../lib/types';
 import { createPersonalSite } from '../../lib/database';
 import { generateId } from '../../lib/encryption';
+import { useI18n } from '../../i18n';
 
 export default function NewPersonalSiteScreen() {
   const router = useRouter();
+  const { t, tt } = useI18n();
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [customName, setCustomName] = useState('');
   const [notes, setNotes] = useState('');
@@ -54,7 +55,7 @@ export default function NewPersonalSiteScreen() {
   const handleSave = async () => {
     const serviceName = isCustom ? customName.trim() : selectedService;
     if (!serviceName) {
-      Alert.alert('Erreur', 'Selectionnez un service ou saisissez un nom.');
+      Alert.alert(t('common.error'), t('site.personalSelectError'));
       return;
     }
     const now = new Date().toISOString();
@@ -77,15 +78,16 @@ export default function NewPersonalSiteScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior="padding"
+      keyboardVerticalOffset={0}
     >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialIcons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nouveau service</Text>
+        <Text style={styles.headerTitle}>{t('site.personalNewTitle')}</Text>
         <TouchableOpacity onPress={handleSave} style={styles.saveBtn}>
-          <Text style={styles.saveBtnText}>Enregistrer</Text>
+          <Text style={styles.saveBtnText}>{t('common.save')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -96,7 +98,7 @@ export default function NewPersonalSiteScreen() {
             style={styles.searchInput}
             value={search}
             onChangeText={setSearch}
-            placeholder="Rechercher un service..."
+            placeholder={t('site.personalSearch')}
             placeholderTextColor={Colors.textMuted}
           />
           {search.length > 0 && (
@@ -109,7 +111,7 @@ export default function NewPersonalSiteScreen() {
 
       <SectionList
         sections={filteredCategories.map((cat) => ({
-          title: cat.label,
+          title: t(cat.label),
           icon: cat.icon,
           data: cat.services,
         }))}
@@ -127,7 +129,7 @@ export default function NewPersonalSiteScreen() {
               />
             </View>
             <Text style={[styles.serviceName, isCustom && styles.serviceNameActive]}>
-              Autre service...
+              {t('site.personalCustom')}
             </Text>
           </TouchableOpacity>
         }
@@ -172,36 +174,38 @@ export default function NewPersonalSiteScreen() {
         )}
         stickySectionHeadersEnabled={false}
         contentContainerStyle={styles.listContent}
+        keyboardShouldPersistTaps="handled"
         ListFooterComponent={
-          isCustom ? (
-            <View style={styles.customSection}>
-              <Text style={styles.label}>Nom du service *</Text>
+          <>
+            {isCustom && (
+              <View style={styles.customSection}>
+                <Text style={styles.label}>{t('site.personalName')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={customName}
+                  onChangeText={setCustomName}
+                  placeholder={t('site.personalNamePlaceholder')}
+                  placeholderTextColor={Colors.textMuted}
+                  autoFocus
+                />
+              </View>
+            )}
+            <View style={styles.notesSection}>
+              <Text style={styles.label}>{t('site.personalNotes')}</Text>
               <TextInput
-                style={styles.input}
-                value={customName}
-                onChangeText={setCustomName}
-                placeholder="Ex: Mon site perso"
+                style={[styles.input, styles.textArea]}
+                value={notes}
+                onChangeText={setNotes}
+                placeholder={t('site.extraInfo')}
                 placeholderTextColor={Colors.textMuted}
-                autoFocus
+                multiline
+                numberOfLines={2}
+                textAlignVertical="top"
               />
             </View>
-          ) : null
+          </>
         }
       />
-
-      <View style={styles.notesSection}>
-        <Text style={styles.label}>Notes (optionnel)</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          value={notes}
-          onChangeText={setNotes}
-          placeholder="Informations supplementaires..."
-          placeholderTextColor={Colors.textMuted}
-          multiline
-          numberOfLines={2}
-          textAlignVertical="top"
-        />
-      </View>
     </KeyboardAvoidingView>
   );
 }

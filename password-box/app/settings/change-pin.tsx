@@ -12,8 +12,10 @@ import { Colors, Spacing, BorderRadius, FontSize } from '../../constants/theme';
 import { setPinHash, getPinHash } from '../../lib/database';
 import { hashPin } from '../../lib/encryption';
 import PinInput from '../../components/PinInput';
+import { useI18n } from '../../i18n';
 
 export default function ChangePinScreen() {
+  const { t, tt } = useI18n();
   const router = useRouter();
   const [step, setStep] = useState<'verify' | 'new' | 'confirm'>('verify');
   const [newPin, setNewPin] = useState('');
@@ -28,7 +30,7 @@ export default function ChangePinScreen() {
       setStep('new');
     } else {
       setPinKey((k) => k + 1);
-      setError('PIN actuel incorrect');
+      setError(t('auth.currentPinWrong'));
     }
   };
 
@@ -42,11 +44,11 @@ export default function ChangePinScreen() {
     if (pin === newPin) {
       const hash = await hashPin(pin);
       await setPinHash(hash);
-      Alert.alert('Succes', 'PIN change avec succes.', [
-        { text: 'OK', onPress: () => router.back() },
+      Alert.alert(t('common.success'), t('auth.pinChanged'), [
+        { text: t('common.ok'), onPress: () => router.back() },
       ]);
     } else {
-      setError('Les PIN ne correspondent pas');
+      setError(t('auth.pinMismatch'));
       setStep('new');
       setNewPin('');
       setPinKey((k) => k + 1);
@@ -59,7 +61,7 @@ export default function ChangePinScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialIcons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Changer le PIN</Text>
+        <Text style={styles.headerTitle}>{t('settings.changePin')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -70,10 +72,10 @@ export default function ChangePinScreen() {
           </View>
           <Text style={styles.subtitle}>
             {step === 'verify'
-              ? 'Saisissez votre PIN actuel'
+              ? t('auth.enterCurrentPin')
               : step === 'new'
-              ? 'Saisissez votre nouveau PIN (6 chiffres)'
-              : 'Confirmez votre nouveau PIN'}
+              ? t('auth.enterNewPin')
+              : t('auth.confirmNewPin')}
           </Text>
         </View>
 
@@ -96,7 +98,7 @@ export default function ChangePinScreen() {
                 setPinKey((k) => k + 1);
               }}
             >
-              <Text style={styles.backLinkText}>Retour</Text>
+              <Text style={styles.backLinkText}>{t('common.back')}</Text>
             </TouchableOpacity>
           </View>
         )}

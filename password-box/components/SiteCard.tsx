@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Site, SITE_TYPE_LABELS, SITE_ICONS, getSiteMode } from '../lib/types';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
+import { useI18n } from '../i18n';
 
 interface SiteCardProps {
   site: Site;
@@ -13,6 +14,7 @@ interface SiteCardProps {
 
 export default function SiteCard({ site, count, onPress, onLongPress }: SiteCardProps) {
   const isPersonal = getSiteMode(site) === 'personnel';
+  const { t } = useI18n();
 
   return (
     <TouchableOpacity
@@ -31,9 +33,9 @@ export default function SiteCard({ site, count, onPress, onLongPress }: SiteCard
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>{site.name}</Text>
         {isPersonal ? (
-          <Text style={styles.typePersonal}>Service personnel</Text>
+          <Text style={styles.typePersonal}>{t('component.servicePersonal')}</Text>
         ) : (
-          <Text style={styles.type}>{SITE_TYPE_LABELS[site.type]}</Text>
+          <Text style={styles.type}>{t(SITE_TYPE_LABELS[site.type])}</Text>
         )}
         {!isPersonal && site.address ? (
           <Text style={styles.address} numberOfLines={1}>{site.address}</Text>

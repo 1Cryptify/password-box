@@ -6,8 +6,6 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -70,10 +68,7 @@ export default function SetupScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <View style={styles.container}>
       {step === 'recovery' ? (
         <ScrollView contentContainerStyle={styles.recoveryContainer}>
           <View style={styles.iconContainer}>
@@ -127,20 +122,22 @@ export default function SetupScreen() {
           </TouchableOpacity>
         </ScrollView>
       ) : (
-        <View style={styles.pinContainer}>
-          <View style={styles.iconContainer}>
-            <MaterialIcons
-              name="shield"
-              size={72}
-              color={Colors.primary}
-            />
+        <>
+          <View style={styles.top}>
+            <View style={styles.iconContainer}>
+              <MaterialIcons
+                name="shield"
+                size={72}
+                color={Colors.primary}
+              />
+            </View>
+            <Text style={styles.title}>PasswordBox</Text>
+            <Text style={styles.subtitle}>
+              {step === 'create'
+                ? 'Créez votre PIN de sécurité (6 chiffres)'
+                : 'Confirmez votre PIN'}
+            </Text>
           </View>
-          <Text style={styles.title}>PasswordBox</Text>
-          <Text style={styles.subtitle}>
-            {step === 'create'
-              ? 'Créez votre PIN de sécurité (6 chiffres)'
-              : 'Confirmez votre PIN'}
-          </Text>
 
           {step === 'create' ? (
             <PinInput key="create" length={6} onComplete={handleFirstPin} />
@@ -154,20 +151,22 @@ export default function SetupScreen() {
           )}
 
           {step === 'confirm' && (
-            <TouchableOpacity
-              style={styles.backBtn}
-              onPress={() => {
-                setStep('create');
-                setFirstPin('');
-                setError('');
-              }}
-            >
-              <Text style={styles.backBtnText}>Retour</Text>
-            </TouchableOpacity>
+            <View style={styles.footer}>
+              <TouchableOpacity
+                style={styles.backBtn}
+                onPress={() => {
+                  setStep('create');
+                  setFirstPin('');
+                  setError('');
+                }}
+              >
+                <Text style={styles.backBtnText}>Retour</Text>
+              </TouchableOpacity>
+            </View>
           )}
-        </View>
+        </>
       )}
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -176,7 +175,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  pinContainer: {
+  top: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -304,11 +303,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   backBtn: {
-    marginTop: Spacing.xl,
     padding: Spacing.md,
+    alignItems: 'center',
   },
   backBtnText: {
     color: Colors.primary,
     fontSize: FontSize.md,
+  },
+  footer: {
+    paddingVertical: Spacing.lg,
   },
 });

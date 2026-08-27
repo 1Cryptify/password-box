@@ -14,13 +14,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius, FontSize } from '../constants/theme';
 import { verifyRecoveryKey } from '../lib/recovery';
 import { setPinHash, clearLockout, setAttempts } from '../lib/database';
+import PinInput from '../components/PinInput';
 
 export default function RecoveryScreen() {
   const router = useRouter();
-  const [step, setStep] = useState<'verify' | 'reset'>('verify');
+  const [step, setStep] = useState<'verify' | 'new' | 'confirm'>('verify');
   const [recoveryKey, setRecoveryKey] = useState('');
   const [newPin, setNewPin] = useState('');
-  const [confirmPin, setConfirmPin] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -33,26 +33,30 @@ export default function RecoveryScreen() {
     const valid = await verifyRecoveryKey(recoveryKey);
     setLoading(false);
     if (valid) {
-      setStep('reset');
+      setStep('new');
       setError('');
     } else {
       setError('Code de récupération invalide');
     }
   };
 
-  const handleResetPin = async () => {
-    if (newPin.length !== 6) {
-      setError('Le PIN doit contenir 6 chiffres');
-      return;
-    }
-    if (newPin !== confirmPin) {
+  const handleNewPin = (pin: string) => {
+    setNewPin(pin);
+    setStep('confirm');
+    setError('');
+  };
+
+  const handleConfirmPin = async (pin: string) => {
+    if (pin !== newPin) {
       setError('Les PIN ne correspondent pas');
+      setStep('new');
+      setNewPin('');
       return;
     }
     setLoading(true);
     try {
       const { hashPin } = await import('../lib/encryption');
-      const hash = await hashPin(newPin);
+      const hash = await hashPin(pin);
       await setPinHash(hash);
       await clearLockout();
       await setAttempts(0);
@@ -118,55 +122,38 @@ export default function RecoveryScreen() {
         </View>
       ) : (
         <View style={styles.content}>
-          <View style={styles.iconContainer}>
-            <MaterialIcons name="lock-reset" size={64} color={Colors.success} />
-          </View>
-          <Text style={styles.title}>Nouveau PIN</Text>
-          <Text style={styles.subtitle}>
-            Code vérifié. Définissez votre nouveau PIN de 6 chiffres.
-          </Text>
-
-          <Text style={styles.label}>Nouveau PIN</Text>
-          <TextInput
-            style={styles.input}
-            value={newPin}
-            onChangeText={(t) => {
-              setNewPin(t.replace(/[^0-9]/g, '').slice(0, 6));
-              setError('');
-            }}
-            placeholder="6 chiffres"
-            placeholderTextColor={Colors.textMuted}
-            keyboardType="number-pad"
-            maxLength={6}
-            secureTextEntry
-          />
-
-          <Text style={styles.label}>Confirmer le PIN</Text>
-          <TextInput
-            style={styles.input}
-            value={confirmPin}
-            onChangeText={(t) => {
-              setConfirmPin(t.replace(/[^0-9]/g, '').slice(0, 6));
-              setError('');
-            }}
-            placeholder="6 chiffres"
-            placeholderTextColor={Colors.textMuted}
-            keyboardType="number-pad"
-            maxLength={6}
-            secureTextEntry
-          />
-
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-          <TouchableOpacity
-            style={[styles.actionBtn, loading && styles.actionBtnDisabled]}
-            onPress={handleResetPin}
-            disabled={loading}
-          >
-            <Text style={styles.actionBtnText}>
-              {loading ? 'Enregistrement...' : 'Enregistrer le nouveau PIN'}
+          <View style={styles.top}>
+            <View style={styles.iconContainer}>
+              <MaterialIcons name="lock-reset" size={64} color={Colors.success} />
+            </View>
+            <Text style={styles.title}>Nouveau PIN</Text>
+            <Text style={styles.subtitle}>
+              {step === 'new'
+                ? 'Code vérifié. Définissez votre nouveau PIN de 6 chiffres.'
+                : 'Confirmez votre nouveau PIN'}
             </Text>
-          </TouchableOpacity>
+          </View>
+
+          {step === 'new' ? (
+            <PinInput key="new" length={6} onComplete={handleNewPin} disabled={loading} />
+          ) : (
+            <PinInput key="confirm" length={6} onComplete={handleConfirmPin} error={error} disabled={loading} />
+          )}
+
+          {step === 'confirm' && (
+            <View style={styles.footer}>
+              <TouchableOpacity
+                style={styles.backLink}
+                onPress={() => {
+                  setStep('new');
+                  setNewPin('');
+                  setError('');
+                }}
+              >
+                <Text style={styles.backLinkText}>Retour</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       )}
     </KeyboardAvoidingView>
@@ -204,6 +191,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.xxl,
+  },
+  top: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   iconContainer: {
     width: 100,
@@ -256,6 +248,17 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     marginBottom: Spacing.lg,
     textAlign: 'center',
+  },
+  backLink: {
+    padding: Spacing.md,
+    alignItems: 'center',
+  },
+  backLinkText: {
+    color: Colors.primary,
+    fontSize: FontSize.md,
+  },
+  footer: {
+    paddingVertical: Spacing.lg,
   },
   actionBtn: {
     backgroundColor: Colors.primary,

@@ -64,16 +64,18 @@ export default function ChangePinScreen() {
       </View>
 
       <View style={styles.content}>
-        <View style={styles.iconContainer}>
-          <MaterialIcons name="lock" size={48} color={Colors.primary} />
+        <View style={styles.top}>
+          <View style={styles.iconContainer}>
+            <MaterialIcons name="lock" size={48} color={Colors.primary} />
+          </View>
+          <Text style={styles.subtitle}>
+            {step === 'verify'
+              ? 'Saisissez votre PIN actuel'
+              : step === 'new'
+              ? 'Saisissez votre nouveau PIN (6 chiffres)'
+              : 'Confirmez votre nouveau PIN'}
+          </Text>
         </View>
-        <Text style={styles.subtitle}>
-          {step === 'verify'
-            ? 'Saisissez votre PIN actuel'
-            : step === 'new'
-            ? 'Saisissez votre nouveau PIN (6 chiffres)'
-            : 'Confirmez votre nouveau PIN'}
-        </Text>
 
         {step === 'verify' ? (
           <PinInput key={`verify-${pinKey}`} length={6} onComplete={handleVerifyOld} error={error} />
@@ -84,17 +86,19 @@ export default function ChangePinScreen() {
         )}
 
         {step === 'confirm' && (
-          <TouchableOpacity
-            style={styles.backLink}
-            onPress={() => {
-              setStep('new');
-              setNewPin('');
-              setError('');
-              setPinKey((k) => k + 1);
-            }}
-          >
-            <Text style={styles.backLinkText}>Retour</Text>
-          </TouchableOpacity>
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={styles.backLink}
+              onPress={() => {
+                setStep('new');
+                setNewPin('');
+                setError('');
+                setPinKey((k) => k + 1);
+              }}
+            >
+              <Text style={styles.backLinkText}>Retour</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </View>
@@ -129,9 +133,12 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    paddingHorizontal: Spacing.xxxl,
+  },
+  top: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.xxxl,
   },
   iconContainer: {
     width: 100,
@@ -151,11 +158,14 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
   },
   backLink: {
-    marginTop: Spacing.xl,
     padding: Spacing.md,
+    alignItems: 'center',
   },
   backLinkText: {
     color: Colors.primary,
     fontSize: FontSize.md,
+  },
+  footer: {
+    paddingVertical: Spacing.lg,
   },
 });

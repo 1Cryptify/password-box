@@ -106,19 +106,22 @@ export default function PinScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        <MaterialIcons
-          name={locked ? 'lock-clock' : 'lock'}
-          size={64}
-          color={locked ? Colors.error : Colors.primary}
-        />
+      <View style={styles.top}>
+        <View style={styles.iconContainer}>
+          <MaterialIcons
+            name={locked ? 'lock-clock' : 'lock'}
+            size={64}
+            color={locked ? Colors.error : Colors.primary}
+          />
+        </View>
+        <Text style={styles.title}>Déverrouillage</Text>
+        <Text style={styles.subtitle}>
+          {locked
+            ? `Verrouillé. Réessayez dans ${lockoutRemaining}`
+            : 'Saisissez votre PIN'}
+        </Text>
       </View>
-      <Text style={styles.title}>Déverrouillage</Text>
-      <Text style={styles.subtitle}>
-        {locked
-          ? `Verrouillé. Réessayez dans ${lockoutRemaining}`
-          : 'Saisissez votre PIN'}
-      </Text>
+
       <PinInput
         key={pinKey}
         length={6}
@@ -126,14 +129,17 @@ export default function PinScreen() {
         error={error}
         disabled={locked}
       />
+
       {!locked && (
-        <TouchableOpacity
-          style={styles.recoveryLink}
-          onPress={() => router.push('/recovery')}
-        >
-          <MaterialIcons name="help-outline" size={16} color={Colors.textMuted} />
-          <Text style={styles.recoveryLinkText}>PIN oublié ?</Text>
-        </TouchableOpacity>
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.recoveryLink}
+            onPress={() => router.push('/recovery')}
+          >
+            <MaterialIcons name="help-outline" size={16} color={Colors.textMuted} />
+            <Text style={styles.recoveryLinkText}>PIN oublié ?</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
@@ -143,6 +149,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  top: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.xxxl,
@@ -173,11 +182,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
-    marginTop: Spacing.xxl,
     padding: Spacing.sm,
   },
   recoveryLinkText: {
     color: Colors.textMuted,
     fontSize: FontSize.sm,
+  },
+  footer: {
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
   },
 });

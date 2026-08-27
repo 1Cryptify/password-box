@@ -9,6 +9,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -17,6 +18,7 @@ import { Colors, Spacing, BorderRadius, FontSize } from '../../constants/theme';
 import { SiteType, SITE_TYPE_LABELS } from '../../lib/types';
 import { saveSite } from '../../lib/database';
 import { generateId } from '../../lib/encryption';
+import { getPosition } from '../../lib/location';
 
 export default function NewSiteScreen() {
   const router = useRouter();
@@ -33,23 +35,56 @@ export default function NewSiteScreen() {
   const getCurrentLocation = async () => {
     setLoadingLocation(true);
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission refusée', 'Activez la localisation dans les paramètres.');
+      const servicesEnabled = await Location.hasServicesEnabledAsync();
+      if (!servicesEnabled) {
+        Alert.alert(
+          'Localisation désactivée',
+          'Le GPS est éteint. Activez la localisation dans les paramètres puis réessayez.',
+          [
+            { text: 'Annuler', style: 'cancel' },
+            { text: 'Paramètres', onPress: () => Linking.openSettings() },
+          ]
+        );
         return;
       }
-      const loc = await Location.getCurrentPositionAsync({});
+
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission refusée',
+          'Autorisez l\'accès à la localisation pour utiliser le GPS.',
+          [
+            { text: 'Annuler', style: 'cancel' },
+            { text: 'Paramètres', onPress: () => Linking.openSettings() },
+          ]
+        );
+        return;
+      }
+
+      const loc = await getPosition();
+      if (!loc) {
+        Alert.alert(
+          'Erreur',
+          'Impossible d\'obtenir la position. Approchez-vous d\'une fenêtre ou sortez à l\'extérieur, puis réessayez.'
+        );
+        return;
+      }
+
       setLatitude(loc.coords.latitude);
       setLongitude(loc.coords.longitude);
 
-      const reverse = await Location.reverseGeocodeAsync({
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude,
-      });
-      if (reverse.length > 0) {
-        const r = reverse[0];
-        const parts = [r.name, r.street, r.city, r.region, r.country].filter(Boolean);
-        setAddress(parts.join(', '));
+      try {
+        const reverse = await Location.reverseGeocodeAsync({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+        });
+        if (reverse.length > 0) {
+          const r = reverse[0];
+          const parts = [r.name, r.street, r.city, r.region, r.country].filter(Boolean);
+          setAddress(parts.join(', '));
+        }
+      } catch {
+        Alert.alert('Erreur', 'La position a été enregistrée mais l\'adresse n\'a pas pu être déterminée.');
       }
     } catch {
       Alert.alert('Erreur', 'Impossible d\'obtenir la position.');

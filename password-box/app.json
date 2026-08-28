@@ -7,25 +7,32 @@
     "icon": "./assets/icon.png",
     "scheme": "passwordbox",
     "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1a2e"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.passwordbox.app"
     },
+
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#1a1a2e",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/foreground.png",
+        "backgroundImage": "./assets/background.png",
+        "monochromeImage": "./assets/monochrome.png"
       },
       "package": "com.passwordbox.app",
       "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
     },
     "web": {
-      "favicon": "./assets/favicon.png",
+      "favicon": "./assets/icon.png",
       "bundler": "metro"
     },
     "plugins": [
+
       "expo-router",
       "expo-secure-store",
       "expo-sharing",
@@ -35,7 +42,9 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Permet d'enregistrer la localisation de vos sites."
         }
-      ]
+      ],
+
+
     ]
   }
 }

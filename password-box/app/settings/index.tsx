@@ -261,7 +261,9 @@ export default function SettingsScreen() {
               <MaterialIcons name={item.icon as any} size={22} color={item.color} />
             </View>
             <Text style={styles.menuLabel}>{item.label}</Text>
-            <Text style={styles.langBadge}>{lang.toUpperCase()}</Text>
+            {item.icon === 'language' && (
+              <Text style={styles.langBadge}>{lang.toUpperCase()}</Text>
+            )}
             <MaterialIcons name="chevron-right" size={22} color={Colors.textMuted} />
           </TouchableOpacity>
         ))}

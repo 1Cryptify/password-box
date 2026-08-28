@@ -5,6 +5,7 @@ import { View, StyleSheet, AppState } from 'react-native';
 import { Colors } from '../constants/theme';
 import { clearAuthenticated } from '../lib/database';
 import { I18nProvider } from '../i18n';
+import Splash from '../components/Splash';
 
 export default function RootLayout() {
   useEffect(() => {
@@ -19,6 +20,7 @@ export default function RootLayout() {
   return (
     <I18nProvider>
       <View style={styles.container}>
+        <Splash />
         <StatusBar style="light" />
         <Stack
           screenOptions={{

@@ -38,19 +38,20 @@
   .hero .btns{margin-top:30px}
   .btn{display:inline-block;background:var(--primary);color:#fff;font-weight:700;padding:14px 30px;border-radius:12px;margin:6px;text-decoration:none}
   .btn.ghost{background:transparent;border:1px solid var(--primary);color:var(--primary)}
-  .btn:hover{opacity:.92}
+  .btn:hover{opacity:.92;text-decoration:none}
   .badges{margin-top:26px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
   .badge{font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface)}
   .container{max-width:var(--maxw);margin:0 auto;padding:56px 24px}
   .section-title{font-size:26px;font-weight:800;text-align:center;letter-spacing:-.5px;margin-bottom:36px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px}
-  .card .ico{font-size:30px;margin-bottom:12px}
+  .card svg{width:30px;height:30px;color:var(--primary);margin-bottom:12px}
   .card h3{font-size:17px;margin-bottom:8px}
   .card p{color:var(--muted);font-size:14.5px;margin:0}
   .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
   .feat{background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:20px}
   .feat h4{font-size:15px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .feat h4 svg{width:20px;height:20px;color:var(--primary);flex:none}
   .feat p{font-size:13.5px;color:var(--muted);margin:0}
   .quote{background:var(--primary);border-radius:var(--radius);padding:34px;text-align:center;font-size:19px;font-weight:600;color:#fff;margin:40px 0}
   .cta{text-align:center;margin-top:20px}
@@ -76,31 +77,55 @@
 
 <section class="hero">
   <h1>Vos mots de passe.<br/>Votre privacy. <span>Point final.</span></h1>
-  <p class="sub">Un gestionnaire de mots de passe et d'équipements réseau, <strong>open source</strong>, <strong>gratuit</strong> et <strong>100% hors ligne</strong>. Aucun serveur. Aucun tracker. Juste vos données, sur votre appareil.</p>
+  <p class="sub">Un gestionnaire de mots de passe et d'équipements réseau, <strong>open source</strong>, <strong>gratuit</strong> et <strong>100 % hors ligne</strong>. Aucun serveur. Aucun tracker. Juste vos données, sur votre appareil.</p>
   <div class="btns">
-    <a class="btn" href="https://github.com/1Cryptify/PASSWORD-BOX" target="_blank" rel="noopener">⭐ Voir le code source</a>
-    <a class="btn ghost" href="privacy/">📖 Notre politique de confidentialité</a>
+    <a class="btn" href="https://github.com/1Cryptify/PASSWORD-BOX" target="_blank" rel="noopener">Voir le code source</a>
+    <a class="btn ghost" href="privacy/">Notre politique de confidentialité</a>
   </div>
   <div class="badges">
-    <span class="badge">🔐 100% hors ligne</span>
-    <span class="badge">🆓 Gratuit à vie</span>
-    <span class="badge">🌍 Open source</span>
-    <span class="badge">🗺 GPS offline</span>
-    <span class="badge">🌐 13 langues</span>
+    <span class="badge">100 % hors ligne</span>
+    <span class="badge">Gratuit à vie</span>
+    <span class="badge">Open source</span>
+    <span class="badge">GPS offline</span>
+    <span class="badge">13 langues</span>
   </div>
 </section>
 
 <div class="container">
   <h2 class="section-title">Pourquoi PasswordBox ?</h2>
   <div class="grid">
-    <div class="card"><div class="ico">🏠</div><h3>100% sur l'appareil</h3><p>Rien n'est envoyé. Ni mots de passe, ni sites, ni positions. Tout reste stocké localement, protégé par chiffrement et votre PIN.</p></div>
-    <div class="card"><div class="ico">🛰</div><h3>GPS GNSS offline</h3><p>Géolocalisez vos sites et équipements sans aucune connexion réseau. Fonctionne même en zone blanche.</p></div>
-    <div class="card"><div class="ico">🗺</div><h3>Cartes hors ligne</h3><p>Téléchargez des tuiles OpenStreetMap et naviguez dans vos sites sans Internet.</p></div>
-    <div class="card"><div class="ico">🧰</div><h3>Inventaire réseau</h3><p>Routeurs, switchs, firewalls, serveurs, caméras IP, NAS… avec type, OS et position.</p></div>
-    <div class="card"><div class="ico">🔑</div><h3>Identifiants multiples</h3><p>Mots de passe, clés SSH, certificats, tokens, SNMP, clés API — unifiés au même endroit.</p></div>
-    <div class="card"><div class="ico">🧍</div><h3>Mode personnel</h3><p>Banque, e-mail, réseaux sociaux… vos données personnelles dans la même app sécurisée.</p></div>
-    <div class="card"><div class="ico">🗂</div><h3>Export .pass chiffré</h3><p>Export/import chiffré avec liste blanche d'appareils autorisés.</p></div>
-    <div class="card"><div class="ico">🛡</div><h3>Sécurité par défaut</h3><p>Verrouillage auto, anti forçage, code de récupération, effacement total.</p></div>
+    <div class="card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <h3>100 % sur l'appareil</h3><p>Rien n'est envoyé. Ni mots de passe, ni sites, ni positions. Tout reste stocké localement, protégé par chiffrement et votre PIN.</p>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+      <h3>GPS GNSS offline</h3><p>Géolocalisez vos sites et équipements sans aucune connexion réseau. Fonctionne même en zone blanche.</p>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+      <h3>Cartes hors ligne</h3><p>Téléchargez des tuiles OpenStreetMap et naviguez dans vos sites sans Internet.</p>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><rect x="8" y="10" width="8" height="8"></rect><line x1="12" y1="4" x2="12" y2="10"></line></svg>
+      <h3>Inventaire réseau</h3><p>Routeurs, switchs, firewalls, serveurs, caméras IP, NAS… avec type, OS et position.</p>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+      <h3>Identifiants multiples</h3><p>Mots de passe, clés SSH, certificats, tokens, SNMP, clés API — unifiés au même endroit.</p>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      <h3>Mode personnel</h3><p>Banque, e-mail, réseaux sociaux… vos données personnelles dans la même app sécurisée.</p>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6"></path><path d="M21 8V3h-5"></path><path d="M21 3L9 15"></path></svg>
+      <h3>Export .pass chiffré</h3><p>Export/import chiffré avec liste blanche d'appareils autorisés.</p>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      <h3>Sécurité par défaut</h3><p>Verrouillage auto, anti forçage, code de récupération, effacement total.</p>
+    </div>
   </div>
 
   <div class="quote">
@@ -109,27 +134,27 @@
 
   <h2 class="section-title" id="features">Toutes les fonctionnalités</h2>
   <div class="features">
-    <div class="feat"><h4>🏢 Gestion de sites</h4><p>Sites professionnels et personnels, avec position GPS sur carte Leaflet.</p></div>
-    <div class="feat"><h4>🧰 Équipements typés</h4><p>18 types d'équipements + type et OS personnalisés.</p></div>
-    <div class="feat"><h4>🔑 Identifiants étoffés</h4><p>6 types d'authentification, notes, port, utilisateur.</p></div>
-    <div class="feat"><h4>🛰 GPS GNSS pur</h4><p>Zéro fournisseur réseau, rejet des positions simulées.</p></div>
-    <div class="feat"><h4>🗺 Cartes offline</h4><p>Tuiles OSM pré-téléchargées pour un usage sans connexion.</p></div>
-    <div class="feat"><h4>🌍 13 langues</h4><p>Dont l'arabe (RTL) — pour tout le monde.</p></div>
-    <div class="feat"><h4>🔁 Récupération</h4><p>Code de récupération pour retrouver votre PIN en cas d'oubli.</p></div>
-    <div class="feat"><h4>🗑 Effacement total</h4><p>Supprimez tout : sites, identifiants, PIN, récupération, cache.</p></div>
-    <div class="feat"><h4>🆓 Sans compte</h4><p>Aucun compte à créer. Lancez, utilisez, elles sont à vous.</p></div>
-    <div class="feat"><h4>🔓 Open source</h4><p>Code public, auditable, contribuable. Zéro boîte noire.</p></div>
+    <div class="feat"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Gestion de sites</h4><p>Sites professionnels et personnels, avec position GPS sur carte Leaflet.</p></div>
+    <div class="feat"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="12" y1="4" x2="12" y2="10"></line></svg>Équipements typés</h4><p>18 types d'équipements + type et OS personnalisés.</p></div>
+    <div class="feat"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777z"></path></svg>Identifiants étoffés</h4><p>6 types d'authentification, notes, port, utilisateur.</p></div>
+    <div class="feat"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>GPS GNSS pur</h4><p>Zéro fournisseur réseau, rejet des positions simulées.</p></div>
+    <div class="feat"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon></svg>Cartes offline</h4><p>Tuiles OSM pré-téléchargées pour un usage sans connexion.</p></div>
+    <div class="feat"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>13 langues</h4><p>Dont l'arabe (RTL) — pour tout le monde.</p></div>
+    <div class="feat"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>Récupération</h4><p>Code de récupération pour retrouver votre PIN en cas d'oubli.</p></div>
+    <div class="feat"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Effacement total</h4><p>Supprimez tout : sites, identifiants, PIN, récupération, cache.</p></div>
+    <div class="feat"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Sans compte</h4><p>Aucun compte à créer. Lancez, utilisez, elles sont à vous.</p></div>
+    <div class="feat"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>Open source</h4><p>Code public, auditable, contribuable. Zéro boîte noire.</p></div>
   </div>
 
   <div class="cta">
     <p class="note">Un gestionnaire de mots de passe que vous pouvez vérifier, du premier au dernier octet.</p>
-    <a class="btn" href="https://github.com/1Cryptify/PASSWORD-BOX" target="_blank" rel="noopener">⭐ Star sur GitHub</a>
-    <a class="btn ghost" href="privacy/">📖 Politique de confidentialité</a>
+    <a class="btn" href="https://github.com/1Cryptify/PASSWORD-BOX" target="_blank" rel="noopener">Star sur GitHub</a>
+    <a class="btn ghost" href="privacy/">Politique de confidentialité</a>
   </div>
 </div>
 
 <footer>
-  PasswordBox — 100% hors ligne · open source · gratuit.<br/>
+  PasswordBox — 100 % hors ligne · open source · gratuit.<br/>
   <a href="privacy/">Politique de confidentialité</a> · <a href="https://github.com/1Cryptify/PASSWORD-BOX" target="_blank" rel="noopener">GitHub</a> — 2026
 </footer>
 

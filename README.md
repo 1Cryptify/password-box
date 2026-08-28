@@ -18,7 +18,7 @@ Real passwords. Real equipment. **Zero cloud. Zero tracking. 100% on your device
 
 [Site web](https://1cryptify.github.io/password-box) ·
 [Politique de confidentialité](https://1cryptify.github.io/password-box/privacy) ·
-[Soumettre un bug](https://github.com/1Cryptify/PASSWORD-BOX/issues)
+[Soumettre un bug](https://github.com/1Cryptify/password-box/issues)
 
 </div>
 
@@ -87,7 +87,7 @@ PasswordBox est un gestionnaire de mots de passe conçu pour les **réseaux info
 
 ```bash
 # 1. Cloner
-git clone https://github.com/1Cryptify/PASSWORD-BOX.git
+git clone https://github.com/1Cryptify/password-box.git
 cd password-box
 
 # 2. Installer les dépendances
@@ -133,7 +133,7 @@ cd android
 - Synchronisation chiffrée auto-hébergeable (optionnelle).
 - Suite de tests automatisés (Jest + Detox).
 
-Contributions et suggestions : ouvrez une [issue](https://github.com/1Cryptify/PASSWORD-BOX/issues).
+Contributions et suggestions : ouvrez une [issue](https://github.com/1Cryptify/password-box/issues).
 
 ---
 
@@ -178,6 +178,6 @@ Ce projet est proposé sous licence **MIT** (licence formelle à confirmer — v
 
 [Site web](https://1cryptify.github.io/password-box) ·
 [Confidentialité](https://1cryptify.github.io/password-box/privacy) ·
-[Star sur GitHub](https://github.com/1Cryptify/PASSWORD-BOX)
+[Star sur GitHub](https://github.com/1Cryptify/password-box)
 
 </div>
